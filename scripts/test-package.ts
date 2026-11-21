@@ -196,6 +196,9 @@ assert.equal(js.parse("<p>&copy; &amp;</p>").fragment.nodes[0].fragment.nodes[0]
 assert.equal(js.parseModule("let a = 1;").body[0].type, "VariableDeclaration");
 assert.equal(js.parseImportsExports('import a from "a";')[0].type, "ImportDeclaration");
 assert.throws(() => js.parseImportsExports('import type A from "a";', { typescript: true }), (error) => !(error instanceof core.ParseError));
+const sections = core.createSectionsParser({ typescript, entities });
+assert.deepEqual(plain(sections.parseSections(source)), plain((await import("svelte-ast")).parseSections(source)));
+assert.throws(() => core.createSectionsParser().parseSections(source), (error) => !(error instanceof core.ParseError));
 
 const modules = await import("svelte-ast/module");
 assert.equal(modules.ParseError, core.ParseError);
@@ -298,8 +301,10 @@ assert.deepEqual(
 import {
   type AST as CoreAST,
   createParser,
+  createSectionsParser,
   type Parser,
   type Program as CoreProgram,
+  type SectionsParser,
 } from "svelte-ast/core";
 import { entities } from "svelte-ast/entities";
 import {
@@ -407,6 +412,12 @@ void coreProgram;
 void rootFromCore;
 // @ts-expect-error: typescript comes from svelte-ast/typescript
 createParser({ typescript: true });
+
+const sectionsParser: SectionsParser = createSectionsParser({ typescript, entities });
+const sectionsAst: CoreRoot = sectionsParser.parseSections("<script>let a;</script>", { comments: false });
+void sectionsAst;
+// @ts-expect-error: createSectionsParser only returns parseSections
+sectionsParser.parse;
 
 const moduleParser: ModuleParser = createModuleParser({ typescript });
 const moduleProgram: ModuleProgram = moduleParser.parseModule("let a: number;", { typescript: true });

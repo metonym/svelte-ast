@@ -9,6 +9,7 @@ import type {
   TypeScriptSupport,
 } from "./options";
 import { parseModuleWith } from "./parse-module-with";
+import { parseComponentSections } from "./sections";
 import { entityNamesOf, type Support, typeScriptParser } from "./support";
 import type { ModuleDeclaration, Program } from "./types/estree";
 import type { AST } from "./types/svelte-ast";
@@ -70,16 +71,49 @@ export interface Parser {
  * ```
  */
 export function createParser(support: ParserSupport = {}): Parser {
-  const typescript = typeScriptParser(support.typescript);
-  const internal: Support = {
-    typescript,
-    entityNames: entityNamesOf(support.entities) ?? xmlEntityNames,
-  };
+  const internal = internalSupport(support);
+  const { typescript } = internal;
   return {
     parse: (source, options) => parseComponent(source, options, internal),
     parseModule: (source, options = {}) =>
       parseModuleWith(source, options, typescript),
     parseImportsExports: (source, options = {}) =>
       parseImportsExportsWith(source, options, typescript),
+  };
+}
+
+/** The parser {@link createSectionsParser} returns. */
+export interface SectionsParser {
+  /** `parseSections` from `svelte-ast`, with only what the parser was created with. */
+  parseSections(source: string, options?: ParseOptions): AST.Root;
+}
+
+/**
+ * Creates `parseSections` that bundles only what's passed in, as
+ * {@link createParser} creates `parse`. It's a function of its own so that
+ * a bundle with only `createParser` doesn't carry the lexer `parseSections`
+ * uses. With both parts, it's the same as `svelte-ast`'s.
+ *
+ * ```ts
+ * import { createSectionsParser } from "svelte-ast/core";
+ * import { typescript } from "svelte-ast/typescript";
+ *
+ * const { parseSections } = createSectionsParser({ typescript });
+ * ```
+ */
+export function createSectionsParser(
+  support: ParserSupport = {},
+): SectionsParser {
+  const internal = internalSupport(support);
+  return {
+    parseSections: (source, options) =>
+      parseComponentSections(source, options, internal),
+  };
+}
+
+function internalSupport(support: ParserSupport): Support {
+  return {
+    typescript: typeScriptParser(support.typescript),
+    entityNames: entityNamesOf(support.entities) ?? xmlEntityNames,
   };
 }

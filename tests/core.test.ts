@@ -3,8 +3,13 @@ import {
   parse,
   parseImportsExports,
   parseModule,
+  parseSections,
 } from "svelte-ast";
-import { ParseError as CoreParseError, createParser } from "svelte-ast/core";
+import {
+  ParseError as CoreParseError,
+  createParser,
+  createSectionsParser,
+} from "svelte-ast/core";
 import { entities } from "svelte-ast/entities";
 import {
   createModuleParser,
@@ -50,7 +55,7 @@ function matchesFullParser(
 
 test("svelte-ast/core, svelte-ast/module, svelte-ast/typescript and svelte-ast/entities export only their parts", async () => {
   expect(Object.keys(await import("svelte-ast/core")).sort(byCodeUnit)).toEqual(
-    ["ParseError", "createParser"],
+    ["ParseError", "createParser", "createSectionsParser"],
   );
   expect(
     Object.keys(await import("svelte-ast/module")).sort(byCodeUnit),
@@ -101,6 +106,52 @@ test("without typescript, TypeScript throws an Error, not a ParseError", () => {
   expect(createParser({ typescript }).parse(source).instance).toEqual(
     parse(source).instance,
   );
+});
+
+function matchesParseSections(
+  parser: ReturnType<typeof createSectionsParser>,
+  file: string,
+): boolean {
+  const source = readCorpus(file);
+  return Bun.deepEquals(
+    outcome(() => parser.parseSections(source, { loc: true })),
+    outcome(() => parseSections(source, { loc: true })),
+  );
+}
+
+test("createSectionsParser with typescript and entities parses like parseSections", () => {
+  const parser = createSectionsParser({ typescript, entities });
+  const components = files.filter((file) => file.endsWith(".svelte"));
+  expect(
+    components.filter((file) => !matchesParseSections(parser, file)),
+  ).toEqual([]);
+  expect(components.length).toBeGreaterThan(300);
+});
+
+test("createSectionsParser without either parses JavaScript components like parseSections unless they use named references", () => {
+  const parser = createSectionsParser();
+  const compared = files.filter((file) => {
+    if (!file.endsWith(".svelte")) return false;
+    const source = readCorpus(file);
+    return !LANG_TS.test(source) && !NAMED_REFERENCE.test(source);
+  });
+  expect(
+    compared.filter((file) => !matchesParseSections(parser, file)),
+  ).toEqual([]);
+  expect(compared.length).toBeGreaterThan(300);
+});
+
+test("createSectionsParser without typescript throws an Error on TypeScript, not a ParseError", () => {
+  const { parseSections: parseSectionsJs } = createSectionsParser();
+  const source = '<script lang="ts">let a: number = 1;</script>{a}';
+  const run = () => parseSectionsJs(source);
+  expect(run).toThrow(
+    'svelte-ast: parsing TypeScript needs `typescript` from "svelte-ast/typescript"',
+  );
+  expect(run).not.toThrow(ParseError);
+  expect(
+    createSectionsParser({ typescript }).parseSections(source).instance,
+  ).toEqual(parseSections(source).instance);
 });
 
 test("createModuleParser with typescript parses modules like svelte-ast", () => {
