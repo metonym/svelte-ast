@@ -11,6 +11,10 @@ const BUNDLES: [string, string][] = [
     "svelte-ast/core, createParser()",
     `export { createParser } from "${dist}/core.js";`,
   ],
+  [
+    "svelte-ast/core, createSectionsParser()",
+    `export { createSectionsParser } from "${dist}/core.js";`,
+  ],
 ];
 
 const kb = (bytes: number) => `${(bytes / 1000).toFixed(1)} kB`;

@@ -38,7 +38,7 @@ It's for tools that analyze components statically, such as documentation and typ
 | [`lexDynamicImports`](#lexdynamicimportssource--lexeddynamicimport) | A module's `import(…)`, `require(…)` and `import.meta.glob(…)`, with their offsets and sources, without loading a parser | `svelte-ast/lexer` |
 | [`lexComponent`](#lexcomponentsource--lexedcomponent) | A component's `<script>`s, `<style>` and `<svelte:options>`, with their attributes and offsets, without loading a parser | `svelte-ast/lexer` |
 | [`lexStrings`](#lexstringssource--lexedstring) | A module's string and template literals, with their offsets and values, without loading a parser | `svelte-ast/lexer` |
-| [`createParser`, `createModuleParser`](#smaller-bundles-svelte-astcore-and-svelte-astmodule) | The parsers without TypeScript, named HTML entities or the template parser, for a smaller bundle | `svelte-ast/core`, `svelte-ast/module` |
+| [`createParser`, `createSectionsParser`, `createModuleParser`](#smaller-bundles-svelte-astcore-and-svelte-astmodule) | The parsers without TypeScript, named HTML entities or the template parser, for a smaller bundle | `svelte-ast/core`, `svelte-ast/module` |
 | [`isValidType`](#isvalidtypetext-options--boolean) | Whether a JSDoc type is safe to copy into a `.d.ts` | `svelte-ast` |
 | [`isRunesMode`](#isrunesmodesource--boolean) | Whether svelte compiles a component in runes mode, mostly without parsing it | `svelte-ast` |
 | [`walk`, `visitorKeys`, `markupVisitorKeys`, `valueVisitorKeys`, `skipTypeWrappers`](#walknode-visitor-keys--void) | Visit, skip, stop at or replace nodes, in the whole AST, only the markup, or everything but TypeScript's types | `svelte-ast`, `svelte-ast/walk` |
@@ -141,7 +141,7 @@ A syntax error throws a `ParseError` with svelte's `code` (e.g. `"block_unclosed
 
 ### `parseSections(source, options?) => AST.Root`
 
-`parse` for a pass that only reads a component's scripts, such as its props or its module script's exports: the top-level `<script>`s, `<style>` and `<svelte:options>` are parsed as `parse` parses them, and the markup between them is skipped as [`lexComponent`](#lexcomponentsource--lexedcomponent) skips it. `fragment.nodes` is empty, `comments` has only the scripts' comments, and the markup's syntax errors aren't reported; the rest is `parse`'s, offsets and the HTML comment before a `<script>` included. It takes `parse`'s options, and on the benchmark corpus it's 1.5× faster, where most of what's left is the scripts. It's a function of its own so that a bundle with only `parse` doesn't carry the lexer; `createParser` doesn't return it.
+`parse` for a pass that only reads a component's scripts, such as its props or its module script's exports: the top-level `<script>`s, `<style>` and `<svelte:options>` are parsed as `parse` parses them, and the markup between them is skipped as [`lexComponent`](#lexcomponentsource--lexedcomponent) skips it. `fragment.nodes` is empty, `comments` has only the scripts' comments, and the markup's syntax errors aren't reported; the rest is `parse`'s, offsets and the HTML comment before a `<script>` included. It takes `parse`'s options, and on the benchmark corpus it's 1.5× faster, where most of what's left is the scripts. It's a function of its own so that a bundle with only `parse` doesn't carry the lexer; `createParser` doesn't return it, and `createSectionsParser` does, without the parts you leave out.
 
 ```ts
 import { parseSections } from "svelte-ast";
@@ -285,19 +285,20 @@ for (const string of lexStrings(source)) {
 
 ### Smaller bundles: `svelte-ast/core` and `svelte-ast/module`
 
-`createParser(support?)` from `svelte-ast/core` returns `parse`, `parseModule` and `parseImportsExports` without the TypeScript parser and the table of HTML's named character references, which most tools can do without. `createModuleParser(support?)` from `svelte-ast/module` returns `parseModule` and `parseImportsExports` without the template parser either, for tools that read `.js` and `.ts` files but never components, such as a bundler plugin following a module graph. Pass back the parts you need; with them, the parsers are the same as `svelte-ast`'s.
+`createParser(support?)` from `svelte-ast/core` returns `parse`, `parseModule` and `parseImportsExports` without the TypeScript parser and the table of HTML's named character references, which most tools can do without. `createSectionsParser(support?)`, from the same entry, returns `parseSections` the same way; it's separate so that a bundle with only `createParser` doesn't carry the lexer. `createModuleParser(support?)` from `svelte-ast/module` returns `parseModule` and `parseImportsExports` without the template parser either, for tools that read `.js` and `.ts` files but never components, such as a bundler plugin following a module graph. Pass back the parts you need; with them, the parsers are the same as `svelte-ast`'s.
 
 ```ts
-import { createParser } from "svelte-ast/core";
+import { createParser, createSectionsParser } from "svelte-ast/core";
 import { typescript } from "svelte-ast/typescript";
 
 const { parse, parseModule, parseImportsExports } = createParser({ typescript });
+const { parseSections } = createSectionsParser({ typescript });
 ```
 
 | Support | Without it |
 |:---|:---|
 | `typescript` from `svelte-ast/typescript` | A component with `<script lang="ts">`, or `typescript: true`, throws an `Error`, not a `ParseError`: a missing import, not a syntax error, and never a JavaScript AST of TypeScript |
-| `entities` from `svelte-ast/entities` (`createParser` only) | Numeric references, such as `&#169;`, and `&amp;`, `&apos;`, `&gt;`, `&lt;` and `&quot;` are decoded, but other names, such as `&copy;`, are left as written, so `Text.data` differs from svelte's where the source uses them |
+| `entities` from `svelte-ast/entities` (`createParser` and `createSectionsParser` only) | Numeric references, such as `&#169;`, and `&amp;`, `&apos;`, `&gt;`, `&lt;` and `&quot;` are decoded, but other names, such as `&copy;`, are left as written, so `Text.data` differs from svelte's where the source uses them |
 
 Both also export `ParseError`, the same class as `svelte-ast`'s, and the node types.
 
