@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.12.1 — 2026-11-21
+
+**Features**
+
+- `createSectionsParser(support?)` from `svelte-ast/core` returns
+  `parseSections` with only the parts passed in, as `createParser`
+  returns `parse`. Without `entities`, it leaves out the table of HTML's
+  named character references, which `parseSections` from `svelte-ast`
+  always bundles (#66). A bundle with only `createParser` doesn't grow.
+
 ## 0.12.0 — 2026-11-20
 
 **Breaking**
