@@ -5,9 +5,9 @@
 // licensed.
 
 import { invalidWithAncestor, invalidWithParent } from "./html-tree-validation";
+import { type ElementVisitor, MarkupWalk } from "./markup-walk";
 import type { Binding, Scope, Scopes } from "./scope";
 import { skipTypeWrappers } from "./skip-type-wrappers";
-import { ignoreCodes } from "./svelte-ignore";
 import type {
   Expression,
   Identifier,
@@ -33,8 +33,6 @@ export interface TemplateWarningsOptions {
   scopes: () => Scopes;
 }
 
-const NO_IGNORES: ReadonlySet<string> = new Set();
-
 const link = (code: string) => `\nhttps://svelte.dev/e/${code}`;
 
 // svelte's utils.js.
@@ -57,23 +55,6 @@ const REACT_ATTRIBUTES: ReadonlyMap<string, string> = new Map([
   ["className", "class"],
   ["htmlFor", "for"],
 ]);
-// svelte's `element_nodes`: what `determine_slot` reads a `slot` from.
-const ELEMENTS = new Set([
-  "Component",
-  "TitleElement",
-  "SlotElement",
-  "RegularElement",
-  "SvelteBody",
-  "SvelteBoundary",
-  "SvelteComponent",
-  "SvelteDocument",
-  "SvelteElement",
-  "SvelteFragment",
-  "SvelteHead",
-  "SvelteOptions",
-  "SvelteSelf",
-  "SvelteWindow",
-]);
 const NAMESPACE_PREFIX = /[a-zA-Z-]*:/g;
 const NOT_IDENTIFIER = /[^a-zA-Z0-9_$]/g;
 const LEADING_DIGIT = /^[0-9]/;
@@ -88,34 +69,30 @@ export function templateWarnings(
   ast: AST.Root,
   options: TemplateWarningsOptions,
   warn: Warn,
+  onElement?: ElementVisitor,
 ): void {
-  new TemplateWarnings(ast, options, warn).run();
+  new TemplateWarnings(ast, options, warn, onElement).walk(ast);
 }
 
-class TemplateWarnings {
+class TemplateWarnings extends MarkupWalk {
   private readonly ast: AST.Root;
   private readonly options: TemplateWarningsOptions;
   private readonly report: Warn;
-  private readonly runes: boolean;
   // The names value imports declare, read from the scripts without scopes.
   private imports: Set<string> | undefined;
   // How many `{#each}` blocks with a `...rest` in their context are open.
   private restEaches = 0;
-  // The nodes above the one being visited, as svelte's `context.path`.
-  private readonly path: Node[] = [];
-  // svelte's `parent_element`: the element the markup sits in, until a
-  // component, snippet or `<svelte:element>` resets it.
-  private parentElement: string | null = null;
 
-  constructor(ast: AST.Root, options: TemplateWarningsOptions, warn: Warn) {
+  constructor(
+    ast: AST.Root,
+    options: TemplateWarningsOptions,
+    warn: Warn,
+    onElement?: ElementVisitor,
+  ) {
+    super(options.runes, onElement);
     this.ast = ast;
     this.options = options;
     this.report = warn;
-    this.runes = options.runes;
-  }
-
-  run(): void {
-    this.fragment(this.ast.fragment.nodes, NO_IGNORES);
   }
 
   private warn(
@@ -127,58 +104,7 @@ class TemplateWarnings {
     if (!ignores.has(code)) this.report(node, code, message + link(code));
   }
 
-  /**
-   * Visits a fragment's nodes, as svelte's analyzer with its `svelte-ignore`
-   * comments.
-   */
-  private fragment(nodes: readonly Node[], ignored: ReadonlySet<string>): void {
-    for (let i = 0; i < nodes.length; i++) {
-      const node = nodes[i];
-      if (node.type === "Comment" || node.type === "Text") continue;
-      let ignores = ignored;
-      const previous = i > 0 ? nodes[i - 1].type : "";
-      if (previous === "Comment" || previous === "Text") {
-        const codes = this.ignoredBefore(nodes, i);
-        if (codes.length > 0) ignores = new Set([...ignored, ...codes]);
-      }
-      this.visit(node, ignores);
-    }
-  }
-
-  /** The codes the comments right before `nodes[index]` ignore. */
-  private ignoredBefore(nodes: readonly Node[], index: number): string[] {
-    const codes: string[] = [];
-    for (let i = index - 1; i >= 0; i--) {
-      const previous = nodes[i];
-      if (previous.type === "Comment")
-        codes.push(...ignoreCodes(previous.data, this.runes));
-      else if (previous.type !== "Text") break;
-    }
-    return codes;
-  }
-
-  private visit(node: Node, ignores: ReadonlySet<string>): void {
-    this.path.push(node);
-    this.visitNode(node, ignores);
-    this.path.pop();
-  }
-
-  /**
-   * Visits `node`'s fragment with `parentElement` as svelte's
-   * `parent_element`.
-   */
-  private within(
-    parentElement: string | null,
-    nodes: readonly Node[],
-    ignores: ReadonlySet<string>,
-  ): void {
-    const outer = this.parentElement;
-    this.parentElement = parentElement;
-    this.fragment(nodes, ignores);
-    this.parentElement = outer;
-  }
-
-  private visitNode(node: Node, ignores: ReadonlySet<string>): void {
+  protected override visitNode(node: Node, ignores: ReadonlySet<string>): void {
     switch (node.type) {
       case "RegularElement":
         this.placement(node, ignores);
@@ -186,13 +112,11 @@ class TemplateWarnings {
         this.componentNameLowercase(node, ignores);
         this.selfClosing(node, ignores);
         this.directives(node, ignores);
-        this.within(node.name, node.fragment.nodes, ignores);
-        return;
+        break;
       case "SvelteElement":
         this.validateElement(node, ignores);
         this.directives(node, ignores);
-        this.within(null, node.fragment.nodes, ignores);
-        return;
+        break;
       case "SvelteComponent":
         if (this.runes) {
           this.warn(
@@ -203,7 +127,7 @@ class TemplateWarnings {
           );
         }
         this.component(node, ignores);
-        return;
+        break;
       case "SvelteSelf":
         if (this.runes && !ignores.has("svelte_self_deprecated")) {
           const [name, basename] = this.selfName();
@@ -215,10 +139,10 @@ class TemplateWarnings {
           );
         }
         this.component(node, ignores);
-        return;
+        break;
       case "Component":
         this.component(node, ignores);
-        return;
+        break;
       case "SvelteWindow":
       case "SvelteDocument":
       case "SvelteBody":
@@ -234,7 +158,7 @@ class TemplateWarnings {
           }
         }
         this.directives(node, ignores);
-        return;
+        break;
       case "SlotElement":
         if (this.runes && !this.options.customElement) {
           this.warn(
@@ -245,51 +169,48 @@ class TemplateWarnings {
           );
         }
         this.directives(node, ignores);
-        this.fragment(node.fragment.nodes, ignores);
-        return;
+        break;
       case "IfBlock":
         this.blockEmpty(node.consequent, ignores);
         this.blockEmpty(node.alternate, ignores);
-        this.fragment(node.consequent.nodes, ignores);
-        if (node.alternate) this.fragment(node.alternate.nodes, ignores);
-        return;
-      case "EachBlock": {
+        break;
+      case "EachBlock":
         this.blockEmpty(node.body, ignores);
         this.blockEmpty(node.fallback, ignores);
-        const rest = node.context !== null && hasRest(node.context);
-        if (rest) this.restEaches++;
-        this.fragment(node.body.nodes, ignores);
-        if (rest) this.restEaches--;
-        if (node.fallback) this.fragment(node.fallback.nodes, ignores);
-        return;
-      }
+        break;
       case "AwaitBlock":
         this.blockEmpty(node.pending, ignores);
         this.blockEmpty(node.then, ignores);
         this.blockEmpty(node.catch, ignores);
-        if (node.pending) this.fragment(node.pending.nodes, ignores);
-        if (node.then) this.fragment(node.then.nodes, ignores);
-        if (node.catch) this.fragment(node.catch.nodes, ignores);
-        return;
+        break;
       case "KeyBlock":
         this.blockEmpty(node.fragment, ignores);
-        this.fragment(node.fragment.nodes, ignores);
-        return;
+        break;
       case "SnippetBlock":
         this.blockEmpty(node.body, ignores);
-        this.within(null, node.body.nodes, ignores);
-        return;
+        break;
       case "SvelteFragment":
         this.directives(node, ignores);
-        this.within(null, node.fragment.nodes, ignores);
-        return;
+        break;
       case "TitleElement":
       case "SvelteBoundary":
       case "SvelteHead":
         this.directives(node, ignores);
-        this.fragment(node.fragment.nodes, ignores);
-        return;
+        break;
     }
+    super.visitNode(node, ignores);
+  }
+
+  // `bind_invalid_each_rest` reads how many `{#each}` blocks with a
+  // `...rest` are open around the binding.
+  protected override eachBody(
+    node: AST.EachBlock,
+    ignores: ReadonlySet<string>,
+  ): void {
+    const rest = node.context !== null && hasRest(node.context);
+    if (rest) this.restEaches++;
+    super.eachBody(node, ignores);
+    if (rest) this.restEaches--;
   }
 
   // --- elements ---
@@ -593,34 +514,6 @@ class TemplateWarnings {
       this.attributeName(attribute, ignores);
     }
     this.directives(node, ignores);
-    const children = node.fragment.nodes;
-    // With no comment and no named slot, svelte's grouping keeps the
-    // children as they are.
-    if (
-      !children.some(
-        (child) => child.type === "Comment" || slotOf(child) !== null,
-      )
-    ) {
-      this.within(null, children, ignores);
-      return;
-    }
-    // svelte groups the children by slot, each with the comments before
-    // it, and walks each group as a fragment: the default slot's comments
-    // carry on past its children.
-    let comments: Node[] = [];
-    const slots = new Map<string, Node[]>([["default", []]]);
-    for (const child of children) {
-      if (child.type === "Comment") {
-        comments.push(child);
-        continue;
-      }
-      const slot = slotOf(child) ?? "default";
-      const nodes = slots.get(slot);
-      if (nodes === undefined) slots.set(slot, [...comments, child]);
-      else nodes.push(...comments, child);
-      if (slot !== "default") comments = [];
-    }
-    for (const nodes of slots.values()) this.within(null, nodes, ignores);
   }
 
   // --- blocks ---
@@ -714,18 +607,6 @@ function isCustomElement(node: AST.RegularElement): boolean {
       (attribute) => attribute.type === "Attribute" && attribute.name === "is",
     )
   );
-}
-
-/** svelte's `determine_slot`: the static `slot` attribute of an element. */
-export function slotOf(node: Node): string | null {
-  if (!ELEMENTS.has(node.type)) return null;
-  for (const attribute of (node as Element).attributes) {
-    if (attribute.type !== "Attribute" || attribute.name !== "slot") continue;
-    const { value } = attribute;
-    if (Array.isArray(value) && value.length === 1 && value[0].type === "Text")
-      return value[0].data;
-  }
-  return null;
 }
 
 /** Whether a binding is a type-only import, which svelte drops. */

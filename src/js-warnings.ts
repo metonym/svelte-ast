@@ -9,6 +9,7 @@
 import { fuzzymatch } from "./a11y-fuzzymatch";
 import { extractIdentifiers } from "./extract-identifiers";
 import { isTypeScript } from "./markup";
+import { slotOf } from "./markup-walk";
 import { fieldsOf, isNode } from "./nodes";
 import type { Scopes } from "./scope";
 import {
@@ -22,7 +23,6 @@ import {
   unusedExports,
 } from "./scope-warnings";
 import { ignoreCodes, isSvelteCode, renamedCode } from "./svelte-ignore";
-import { slotOf } from "./template-warnings";
 import type {
   ExpressionStatement,
   Identifier,

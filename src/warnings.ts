@@ -1,5 +1,6 @@
 // The warnings svelte's compiler gives besides the a11y ones, without
 // svelte's compiler. svelte is MIT licensed.
+import { a11yChecks } from "./a11y-checks";
 import { componentWarnings } from "./component-warnings";
 import { cssUnusedSelectors } from "./css-unused";
 import { jsWarnings } from "./js-warnings";
@@ -48,6 +49,12 @@ export interface CompilerWarningsOptions {
    * legacy mode svelte 4's codes do too. Default `false`.
    */
   runes?: boolean;
+  /**
+   * Whether to give the `a11y_…` warnings too, as `svelte-ast/a11y`'s
+   * {@link a11yWarnings} does, from the same walk of the markup: a caller
+   * that wants both walks it once. Default `false`.
+   */
+  a11y?: boolean;
 }
 
 /**
@@ -74,6 +81,8 @@ export interface CompilerWarningsOptions {
  * `store_rune_conflict`, `svelte_component_deprecated`,
  * `svelte_element_invalid_this`, `svelte_self_deprecated` and
  * `unknown_code`.
+ *
+ * With `a11y: true`, it gives the `a11y_…` ones too.
  *
  * `parse` records `element_implicitly_closed` and
  * `svelte_element_invalid_this` with the AST it returns, so a copy of
@@ -116,6 +125,7 @@ export function compilerWarnings(
       scopes,
     },
     push,
+    options.a11y ? a11yChecks(warnings) : undefined,
   );
   cssUnusedSelectors(ast, runes, scopes, push);
   componentWarnings(ast, runes, options.customElement ?? false, push);
