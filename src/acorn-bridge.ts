@@ -65,7 +65,7 @@ function wordTester(words: WordTester): WordTester {
 export const declarations = definePlugin(
   (Base) =>
     class extends Base {
-      declareName(name: string, bindingType: number, pos: number) {
+      override declareName(name: string, bindingType: number, pos: number) {
         let redeclared = false;
         if (bindingType === BIND_LEXICAL) {
           const scope = this.currentScope();
@@ -135,7 +135,7 @@ export const tweaks = definePlugin((Base) => {
       initialContext ??= this.context[0];
     }
 
-    reset(
+    override reset(
       input: string,
       pos: number,
       startLocation: ParserOptions["startLocation"],
@@ -193,7 +193,10 @@ export const tweaks = definePlugin((Base) => {
       this.inTemplateElement = false;
     }
 
-    parseParenAndDistinguishExpression(canBeArrow: boolean, forInit: ForInit) {
+    override parseParenAndDistinguishExpression(
+      canBeArrow: boolean,
+      forInit: ForInit,
+    ) {
       const node = super.parseParenAndDistinguishExpression(
         canBeArrow,
         forInit,
@@ -202,11 +205,11 @@ export const tweaks = definePlugin((Base) => {
       return node;
     }
 
-    checkUnreserved(ref: AcornNode) {
+    override checkUnreserved(ref: AcornNode) {
       if (RESERVED_WORDS.has(ref.name)) super.checkUnreserved(ref);
     }
 
-    canInsertSemicolon() {
+    override canInsertSemicolon() {
       const type = this.type;
       return (
         type === tokTypes.eof ||
@@ -216,9 +219,9 @@ export const tweaks = definePlugin((Base) => {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function -- svelte's acorn.js doesn't check that exported names are declared
-    checkLocalExport() {}
+    override checkLocalExport() {}
 
-    skipSpace() {
+    override skipSpace() {
       const input = this.input;
       const locations = this.options.locations;
       let pos = this.pos;
@@ -238,7 +241,7 @@ export const tweaks = definePlugin((Base) => {
       if (code === 47 || code < 33 || code >= 128) super.skipSpace();
     }
 
-    readWord1() {
+    override readWord1() {
       const input = this.input;
       const start = this.pos;
       let end = start;
@@ -260,7 +263,7 @@ export const tweaks = definePlugin((Base) => {
       return internName(input, start, end, hash);
     }
 
-    readWord() {
+    override readWord() {
       const word = this.readWord1();
       return this.finishToken(keywordTokens.get(word) ?? tokTypes.name, word);
     }

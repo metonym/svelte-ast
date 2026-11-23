@@ -131,7 +131,7 @@ export const tsPlugin = definePlugin((Base) => {
       }
     }
 
-    reset() {
+    override reset() {
       this.inType = false;
       this.tsNoConditional = false;
       this.tsAmbient = false;
@@ -146,7 +146,7 @@ export const tsPlugin = definePlugin((Base) => {
       this.tsBodilessAt = -1;
     }
 
-    getTokenFromCode(code: number) {
+    override getTokenFromCode(code: number) {
       if (code === 64) {
         ++this.pos;
         return this.finishToken(atType);
@@ -154,7 +154,7 @@ export const tsPlugin = definePlugin((Base) => {
       return super.getTokenFromCode(code);
     }
 
-    readToken_lt_gt(code: number) {
+    override readToken_lt_gt(code: number) {
       if (this.inType) return this.finishOp(tt.relational, 1);
       return super.readToken_lt_gt(code);
     }
@@ -297,7 +297,7 @@ export const tsPlugin = definePlugin((Base) => {
       this.potentialArrowInForAwait = state.potentialArrowInForAwait;
     }
 
-    raise(pos: number, message: string) {
+    override raise(pos: number, message: string) {
       if (this.tsSpeculating > 0) throw SPECULATION_FAILED;
       return super.raise(pos, message);
     }
@@ -1177,7 +1177,7 @@ export const tsPlugin = definePlugin((Base) => {
       return after !== CHAR_EQ && after !== 62;
     }
 
-    parseStatement(
+    override parseStatement(
       context: string | null,
       topLevel?: boolean,
       exports?: ExportedNames,
@@ -1188,7 +1188,7 @@ export const tsPlugin = definePlugin((Base) => {
       return super.parseStatement(context, topLevel, exports);
     }
 
-    parseVarStatement(
+    override parseVarStatement(
       node: Node,
       kind: string,
       allowMissingInitializer: boolean,
@@ -1200,7 +1200,7 @@ export const tsPlugin = definePlugin((Base) => {
       );
     }
 
-    parseVarId(decl: Node, kind: string) {
+    override parseVarId(decl: Node, kind: string) {
       super.parseVarId(decl, kind);
       if (
         decl.id.type === "Identifier" &&
@@ -1213,7 +1213,7 @@ export const tsPlugin = definePlugin((Base) => {
       this.tsParseBindingSuffix(decl.id, false);
     }
 
-    parseCatchClauseParam() {
+    override parseCatchClauseParam() {
       const param = this.tsParseBindingSuffix(this.parseBindingAtom(), false);
       const simple = param.type === "Identifier";
       this.enterScope(simple ? SCOPE_SIMPLE_CATCH : 0);
@@ -1222,7 +1222,7 @@ export const tsPlugin = definePlugin((Base) => {
       return param;
     }
 
-    parseImport(node: Node) {
+    override parseImport(node: Node) {
       this.next();
       node.importKind = "value";
       if (this.type === tt.string) {
@@ -1251,7 +1251,7 @@ export const tsPlugin = definePlugin((Base) => {
       return this.finishNode(node, "ImportDeclaration");
     }
 
-    parseWithClause() {
+    override parseWithClause() {
       if (this.isContextual("assert") && !this.hasPrecedingLineBreak())
         this.type = tt._with;
       return this.type === tt._with ? super.parseWithClause() : undefined;
@@ -1262,13 +1262,13 @@ export const tsPlugin = definePlugin((Base) => {
       if (attributes) node.attributes = attributes;
     }
 
-    parseImportSpecifier() {
+    override parseImportSpecifier() {
       return this.tsParseSpecifier("importKind", () =>
         super.parseImportSpecifier(),
       );
     }
 
-    parseExportSpecifier(exports?: ExportedNames) {
+    override parseExportSpecifier(exports?: ExportedNames) {
       return this.tsParseSpecifier("exportKind", () =>
         super.parseExportSpecifier(exports),
       );
@@ -1293,7 +1293,7 @@ export const tsPlugin = definePlugin((Base) => {
       return node;
     }
 
-    parseExport(node: Node, exports?: ExportedNames) {
+    override parseExport(node: Node, exports?: ExportedNames) {
       this.next();
       if (this.eat(tt._import)) {
         node.importKind = "value";
@@ -1389,7 +1389,7 @@ export const tsPlugin = definePlugin((Base) => {
       return this.finishNode(node, "ExportNamedDeclaration");
     }
 
-    parseFunction(
+    override parseFunction(
       node: Node,
       statement: number,
       allowExpressionBody: boolean,
@@ -1432,14 +1432,14 @@ export const tsPlugin = definePlugin((Base) => {
       return node;
     }
 
-    parseFunctionParams(node: Node) {
+    override parseFunctionParams(node: Node) {
       if (this.tsIsLt()) node.typeParameters = this.tsParseTypeParameters();
       super.parseFunctionParams(node);
       if (this.type === tt.colon)
         node.returnType = this.tsParseTypeAnnotation(true);
     }
 
-    parseFunctionBody(
+    override parseFunctionBody(
       node: Node,
       isArrowFunction: boolean,
       isMethod: boolean,
@@ -1459,7 +1459,7 @@ export const tsPlugin = definePlugin((Base) => {
       this.exitScope();
     }
 
-    parseMethod(
+    override parseMethod(
       isGenerator: boolean,
       isAsync: boolean,
       allowDirectSuper: boolean,
@@ -1475,7 +1475,7 @@ export const tsPlugin = definePlugin((Base) => {
       return node;
     }
 
-    parseBindingList(
+    override parseBindingList(
       close: TokenType,
       allowEmpty: boolean,
       allowTrailingComma: boolean,
@@ -1507,7 +1507,7 @@ export const tsPlugin = definePlugin((Base) => {
       );
     }
 
-    parseAssignableListItem(allowModifiers: boolean) {
+    override parseAssignableListItem(allowModifiers: boolean) {
       const decorators = this.tsParseDecoratorList();
       const start = this.start;
       const startLoc = this.startLoc;
@@ -1561,12 +1561,12 @@ export const tsPlugin = definePlugin((Base) => {
       return this.finishNode(node, "TSParameterProperty");
     }
 
-    parseBindingListItem(param: Node) {
+    override parseBindingListItem(param: Node) {
       if (param.type === "RestElement") this.tsParseBindingSuffix(param, true);
       return param;
     }
 
-    checkLValSimple(
+    override checkLValSimple(
       expr: Node,
       bindingType?: number,
       checkClashes?: ExportedNames,
@@ -1589,7 +1589,7 @@ export const tsPlugin = definePlugin((Base) => {
       super.checkLValSimple(expr, bindingType, checkClashes);
     }
 
-    toAssignable(
+    override toAssignable(
       node: Node,
       isBinding: boolean,
       refDestructuringErrors?: DestructuringErrors | null,
@@ -1599,7 +1599,7 @@ export const tsPlugin = definePlugin((Base) => {
       return super.toAssignable(node, isBinding, refDestructuringErrors);
     }
 
-    declareName(name: string, bindingType: number, pos: number) {
+    override declareName(name: string, bindingType: number, pos: number) {
       const scope = this.currentScope();
       if (bindingType & BIND_FLAGS_TS_EXPORT_ONLY) {
         this.tsExportDefined(scope, name);
@@ -1632,7 +1632,7 @@ export const tsPlugin = definePlugin((Base) => {
       }
     }
 
-    checkLocalExport(id: Node) {
+    override checkLocalExport(id: Node) {
       for (let i = this.scopeStack.length - 1; i >= 0; i--) {
         const scope = this.scopeStack[i];
         if (
@@ -1646,9 +1646,9 @@ export const tsPlugin = definePlugin((Base) => {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function -- TypeScript's overloads and merged declarations export a name more than once
-    checkExport() {}
+    override checkExport() {}
 
-    raiseRecoverable(pos: number, message: string) {
+    override raiseRecoverable(pos: number, message: string) {
       if (message === "Duplicate constructor in the same class") return;
       super.raiseRecoverable(pos, message);
     }
@@ -1732,11 +1732,11 @@ export const tsPlugin = definePlugin((Base) => {
       return this.finishNode(node, "Decorator");
     }
 
-    shouldParseExportStatement() {
+    override shouldParseExportStatement() {
       return this.type === atType || super.shouldParseExportStatement();
     }
 
-    parseExprAtom(
+    override parseExprAtom(
       refDestructuringErrors?: DestructuringErrors | null,
       forInit?: ForInit,
       forNew?: boolean,
@@ -1745,7 +1745,7 @@ export const tsPlugin = definePlugin((Base) => {
       return super.parseExprAtom(refDestructuringErrors, forInit, forNew);
     }
 
-    parseProperty(
+    override parseProperty(
       isPattern: boolean,
       refDestructuringErrors?: DestructuringErrors | null,
     ): Node {
@@ -1764,7 +1764,7 @@ export const tsPlugin = definePlugin((Base) => {
       return property;
     }
 
-    parseClassId(node: Node, isStatement: ClassStatement) {
+    override parseClassId(node: Node, isStatement: ClassStatement) {
       const index = this.tsDecoratorStack.length - 1;
       const decorators = this.tsDecoratorStack[index];
       if (decorators.length > 0) {
@@ -1778,7 +1778,7 @@ export const tsPlugin = definePlugin((Base) => {
       if (this.tsIsLt()) node.typeParameters = this.tsParseTypeParameters();
     }
 
-    parseClassSuper(node: Node) {
+    override parseClassSuper(node: Node) {
       super.parseClassSuper(node);
       if (node.superClass && this.tsIsLt())
         node.superTypeParameters = this.tsParseTypeArguments(true);
@@ -1786,7 +1786,7 @@ export const tsPlugin = definePlugin((Base) => {
         node.implements = this.tsInType(() => this.tsParseHeritage());
     }
 
-    parseClassElement(constructorAllowsSuper: boolean): Node | null {
+    override parseClassElement(constructorAllowsSuper: boolean): Node | null {
       if (this.type === atType) {
         const decorators = this.tsParseDecoratorList();
         if (this.type === tt.braceR) {
@@ -1898,7 +1898,7 @@ export const tsPlugin = definePlugin((Base) => {
       return node;
     }
 
-    parseMaybeAssign(
+    override parseMaybeAssign(
       forInit?: ForInit,
       refDestructuringErrors?: DestructuringErrors | null,
       afterLeftParse?: (
@@ -1929,7 +1929,7 @@ export const tsPlugin = definePlugin((Base) => {
       );
     }
 
-    parseMaybeUnary(
+    override parseMaybeUnary(
       refDestructuringErrors: DestructuringErrors | null | undefined,
       sawUnary: boolean,
       incDec: boolean,
@@ -1955,7 +1955,7 @@ export const tsPlugin = definePlugin((Base) => {
       );
     }
 
-    parseMaybeConditional(
+    override parseMaybeConditional(
       forInit: ForInit,
       refDestructuringErrors?: DestructuringErrors | null,
     ) {
@@ -1987,7 +1987,7 @@ export const tsPlugin = definePlugin((Base) => {
       return next === CHAR_EQ && this.input.charCodeAt(at + 1) !== CHAR_EQ;
     }
 
-    parseParenItem(item: Node) {
+    override parseParenItem(item: Node) {
       return this.tsParseBindingSuffix(item, true);
     }
 
@@ -2004,15 +2004,15 @@ export const tsPlugin = definePlugin((Base) => {
       return true;
     }
 
-    shouldParseArrow(exprList: Node[]) {
+    override shouldParseArrow(exprList: Node[]) {
       return this.tsTryArrowReturnType() && super.shouldParseArrow(exprList);
     }
 
-    shouldParseAsyncArrow() {
+    override shouldParseAsyncArrow() {
       return this.tsTryArrowReturnType() && super.shouldParseAsyncArrow();
     }
 
-    parseArrowExpression(
+    override parseArrowExpression(
       node: Node,
       params: Node[],
       isAsync: boolean,
@@ -2025,7 +2025,7 @@ export const tsPlugin = definePlugin((Base) => {
       return super.parseArrowExpression(node, params, isAsync, forInit);
     }
 
-    parseExprList(
+    override parseExprList(
       close: TokenType,
       allowTrailingComma: boolean,
       allowEmpty: boolean,
@@ -2067,7 +2067,7 @@ export const tsPlugin = definePlugin((Base) => {
       return elements;
     }
 
-    parseSubscript(
+    override parseSubscript(
       base: Node,
       startPos: number,
       startLoc: Position,
@@ -2168,7 +2168,7 @@ export const tsPlugin = definePlugin((Base) => {
       return this.parseArrowExpression(node, node.params, true, forInit);
     }
 
-    parseDynamicImport(node: Node) {
+    override parseDynamicImport(node: Node) {
       this.next();
       node.source = this.parseMaybeAssign();
       if (this.eat(tt.comma) && this.type !== tt.parenR)
@@ -2177,7 +2177,7 @@ export const tsPlugin = definePlugin((Base) => {
       return this.finishNode(node, "ImportExpression");
     }
 
-    parseNew() {
+    override parseNew() {
       const node = super.parseNew();
       if (node.callee?.type !== "TSInstantiationExpression") return node;
       const result = this.startNodeAt(node.start, node.loc?.start);
@@ -2192,7 +2192,7 @@ export const tsPlugin = definePlugin((Base) => {
       );
     }
 
-    parseExprOp(
+    override parseExprOp(
       left: Node,
       leftStartPos: number,
       leftStartLoc: Position,
@@ -2239,12 +2239,12 @@ export const tsPlugin = definePlugin((Base) => {
       );
     }
 
-    parseGetterSetter(prop: Node) {
+    override parseGetterSetter(prop: Node) {
       prop.kind = prop.key.name;
       super.parseGetterSetter(prop);
     }
 
-    parsePropertyValue(
+    override parsePropertyValue(
       prop: Node,
       isPattern: boolean,
       isGenerator: boolean,
