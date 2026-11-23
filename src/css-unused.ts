@@ -22,10 +22,8 @@ type SelectorList = AST.CSS.SelectorList;
 type Element = AST.RegularElement | AST.SvelteElement;
 type ComponentLike = AST.Component | AST.SvelteComponent | AST.SvelteSelf;
 type Renderer = AST.RenderTag | ComponentLike;
-/** A markup node, or a `Fragment`, which has no offsets. */
-interface Node {
-  type: string;
-}
+// svelte-ast's node union, so a check of `type` narrows it.
+type Node = AST.SvelteNode;
 
 /** What svelte keeps on a `RelativeSelector`'s `metadata`, but `scoped`. */
 interface RelativeMeta {
@@ -241,9 +239,7 @@ function stripTs(expression: Expression): Expression {
 
 function unwrapOptional(expression: Expression): Expression {
   const node = stripTs(expression);
-  return node.type === "ChainExpression"
-    ? stripTs(node.expression as Expression)
-    : node;
+  return node.type === "ChainExpression" ? stripTs(node.expression) : node;
 }
 
 /** svelte's `is_resolved_snippet`, on svelte-ast's bindings. */
@@ -464,7 +460,7 @@ class UnusedSelectors {
     const binding =
       callee.type === "Identifier" ? this.bindingOf(callee) : null;
     if (binding?.initial?.type === "SnippetBlock") {
-      this.addSnippet(node, binding.initial as AST.SnippetBlock);
+      this.addSnippet(node, binding.initial);
     }
     return callee.type === "Identifier" && isResolvedSnippet(binding);
   }
@@ -490,7 +486,7 @@ class UnusedSelectors {
         const binding = this.bindingOf(expression);
         resolved &&= isResolvedSnippet(binding);
         if (binding?.initial?.type === "SnippetBlock") {
-          this.addSnippet(node, binding.initial as AST.SnippetBlock);
+          this.addSnippet(node, binding.initial);
         }
       } else if (expression.type !== "Literal") {
         resolved = false;
@@ -1049,7 +1045,7 @@ class UnusedSelectors {
       const parent = path[i];
       if (!parent) continue;
       if (parent.type === "SnippetBlock") {
-        const snippet = parent as AST.SnippetBlock;
+        const snippet = parent;
         if (!seen.has(snippet)) {
           seen.add(snippet);
           for (const site of this.sitesOf.get(snippet) ?? []) {
@@ -1062,15 +1058,12 @@ class UnusedSelectors {
         // Elements in an <option> are also descendants of the
         // <selectedcontent> in its <select>, which clones the selected
         // option's content.
-        if (
-          parent.type === "RegularElement" &&
-          (parent as AST.RegularElement).name === "option"
-        ) {
+        if (parent.type === "RegularElement" && parent.name === "option") {
           const isDirectChild = ancestors.length === 0;
           const select = path.findLast(
             (element, j) =>
               element.type === "RegularElement" &&
-              (element as AST.RegularElement).name === "select" &&
+              element.name === "select" &&
               j < i,
           );
           if (select && (!adjacentOnly || isDirectChild)) {
@@ -1099,7 +1092,7 @@ class UnusedSelectors {
         descendants.push(child);
         if (!adjacentOnly) visitChildren(child);
       } else if (child.type === "RenderTag") {
-        for (const snippet of this.snippets(child as AST.RenderTag)) {
+        for (const snippet of this.snippets(child)) {
           if (seen.has(snippet)) continue;
           seen.add(snippet);
           visit(snippet.body);
@@ -1109,40 +1102,25 @@ class UnusedSelectors {
       }
     };
     const visitChildren = (child: Node): void =>
-      forEachChild(child as AST.SvelteNode, visit, markupVisitorKeys);
+      forEachChild(child, visit, markupVisitorKeys);
 
     visit(node.type === "RenderTag" ? node : (node as Element).fragment);
 
     // <selectedcontent> clones the selected <option>'s content, so what's
     // in the <option>s of its <select> are its descendants too.
-    if (
-      node.type === "RegularElement" &&
-      (node as AST.RegularElement).name === "selectedcontent"
-    ) {
+    if (node.type === "RegularElement" && node.name === "selectedcontent") {
       const select = this.pathOf(node).findLast(
         (element) =>
-          element.type === "RegularElement" &&
-          (element as AST.RegularElement).name === "select",
+          element.type === "RegularElement" && element.name === "select",
       );
       if (select) {
         const inSelect = (child: Node, insideOption: boolean): void => {
-          if (
-            child.type === "RegularElement" &&
-            (child as AST.RegularElement).name === "option"
-          ) {
-            forEachChild(
-              child as AST.SvelteNode,
-              (c) => inSelect(c, true),
-              markupVisitorKeys,
-            );
+          if (child.type === "RegularElement" && child.name === "option") {
+            forEachChild(child, (c) => inSelect(c, true), markupVisitorKeys);
           } else if (insideOption) {
             visit(child);
           } else {
-            forEachChild(
-              child as AST.SvelteNode,
-              (c) => inSelect(c, false),
-              markupVisitorKeys,
-            );
+            forEachChild(child, (c) => inSelect(c, false), markupVisitorKeys);
           }
         };
         inSelect(select, false);
@@ -1181,7 +1159,7 @@ class UnusedSelectors {
       while (j >= 0 && j < fragment.nodes.length) {
         const sibling = fragment.nodes[j] as Node;
         if (sibling.type === "RegularElement") {
-          const hasSlot = (sibling as AST.RegularElement).attributes.some(
+          const hasSlot = sibling.attributes.some(
             (attribute) =>
               attribute.type === "Attribute" &&
               attribute.name.toLowerCase() === "slot",
@@ -1213,7 +1191,7 @@ class UnusedSelectors {
           result.set(sibling, NODE_PROBABLY_EXISTS);
         } else if (sibling.type === "RenderTag") {
           result.set(sibling, NODE_PROBABLY_EXISTS);
-          for (const snippet of this.snippets(sibling as AST.RenderTag)) {
+          for (const snippet of this.snippets(sibling)) {
             addToMap(
               this.possibleNestedSiblings(snippet, direction, adjacentOnly),
               result,
@@ -1233,7 +1211,7 @@ class UnusedSelectors {
         continue;
       }
       if (current.type === "SnippetBlock") {
-        const snippet = current as AST.SnippetBlock;
+        const snippet = current;
         if (seen.has(snippet)) break;
         seen.add(snippet);
         const sites = this.sitesOf.get(snippet) ?? new Set();
@@ -1250,10 +1228,7 @@ class UnusedSelectors {
         }
       }
       if (!isBlock(current)) break;
-      if (
-        current.type === "EachBlock" &&
-        fragment === (current as AST.EachBlock).body
-      ) {
+      if (current.type === "EachBlock" && fragment === current.body) {
         // `{#each ...}<a /><b />{/each}`: `<b>` can be before `<a />`
         addToMap(
           this.possibleNestedSiblings(current, direction, adjacentOnly),
@@ -1271,35 +1246,36 @@ class UnusedSelectors {
     seen = new Set<AST.SnippetBlock>(),
   ): Map<Node, Existence> {
     const fragments: (AST.Fragment | null | undefined)[] = [];
+    // eslint-disable-next-line typescript/switch-exhaustiveness-check -- any other node holds no fragment the sibling could be in
     switch (node.type) {
       case "EachBlock": {
-        const each = node as AST.EachBlock;
+        const each = node;
         fragments.push(each.body, each.fallback);
         break;
       }
       case "IfBlock": {
-        const block = node as AST.IfBlock;
+        const block = node;
         fragments.push(block.consequent, block.alternate);
         break;
       }
       case "AwaitBlock": {
-        const block = node as AST.AwaitBlock;
+        const block = node;
         fragments.push(block.pending, block.then, block.catch);
         break;
       }
       case "KeyBlock":
       case "SlotElement":
-        fragments.push((node as AST.KeyBlock).fragment);
+        fragments.push(node.fragment);
         break;
       case "SnippetBlock": {
-        const snippet = node as AST.SnippetBlock;
+        const snippet = node;
         if (seen.has(snippet)) return new Map();
         seen.add(snippet);
         fragments.push(snippet.body);
         break;
       }
       case "Component": {
-        const component = node as AST.Component;
+        const component = node;
         fragments.push(component.fragment);
         for (const snippet of this.snippets(component))
           fragments.push(snippet.body);
@@ -1315,12 +1291,7 @@ class UnusedSelectors {
         exhaustive = false;
         continue;
       }
-      const map = this.loopChild(
-        fragment.nodes as Node[],
-        direction,
-        adjacentOnly,
-        seen,
-      );
+      const map = this.loopChild(fragment.nodes, direction, adjacentOnly, seen);
       exhaustive &&= hasDefiniteElements(map);
       addToMap(map, result);
     }
@@ -1347,7 +1318,7 @@ class UnusedSelectors {
       } else if (child.type === "SvelteElement") {
         result.set(child, NODE_PROBABLY_EXISTS);
       } else if (child.type === "RenderTag") {
-        for (const snippet of this.snippets(child as AST.RenderTag)) {
+        for (const snippet of this.snippets(child)) {
           addToMap(
             this.possibleNestedSiblings(snippet, direction, adjacentOnly, seen),
             result,
@@ -1447,14 +1418,11 @@ function findSelectedcontent(select: Node): Node | null {
   let found: Node | null = null;
   const visit = (node: Node): void => {
     if (found) return;
-    if (
-      node.type === "RegularElement" &&
-      (node as AST.RegularElement).name === "selectedcontent"
-    ) {
+    if (node.type === "RegularElement" && node.name === "selectedcontent") {
       found = node;
       return;
     }
-    forEachChild(node as AST.SvelteNode, visit, markupVisitorKeys);
+    forEachChild(node, visit, markupVisitorKeys);
   };
   visit(select);
   return found;

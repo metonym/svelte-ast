@@ -102,12 +102,8 @@ export interface A11yWarning {
 }
 
 type Element = AST.RegularElement | AST.SvelteElement;
-interface Node {
-  type: string;
-  start: number;
-  end: number;
-  name?: string;
-}
+// svelte-ast's node union, so a check of `type` narrows it.
+type Node = AST.SvelteNode;
 type Interactivity =
   (typeof ElementInteractivity)[keyof typeof ElementInteractivity];
 interface Schema {
@@ -233,7 +229,11 @@ export function a11yChecks(warnings: A11yWarning[]): ElementVisitor {
   };
 }
 
-type Warn = (node: Node, code: string, message: string) => void;
+type Warn = (
+  at: { start: number; end: number },
+  code: string,
+  message: string,
+) => void;
 
 function checkElement(
   node: Element,
@@ -968,22 +968,14 @@ function hasInputChild(label: Element): boolean {
       node.type === "Component" ||
       node.type === "RenderTag" ||
       (node.type === "RegularElement" &&
-        (labelable.includes(node.name as string) || node.name === "slot"))
+        (labelable.includes(node.name) || node.name === "slot"))
     ) {
       found = true;
       return;
     }
-    forEachChild(
-      node as never,
-      (child) => visit(child as Node),
-      markupVisitorKeys,
-    );
+    forEachChild(node, (child) => visit(child), markupVisitorKeys);
   };
-  forEachChild(
-    label as never,
-    (child) => visit(child as Node),
-    markupVisitorKeys,
-  );
+  forEachChild(label, (child) => visit(child), markupVisitorKeys);
   return found;
 }
 
@@ -1013,8 +1005,7 @@ function isParent(
     if (!parent) continue;
     // Unknown, so don't warn.
     if (parent.type === "SvelteElement") return true;
-    if (parent.type === "RegularElement")
-      return elements.includes(parent.name as string);
+    if (parent.type === "RegularElement") return elements.includes(parent.name);
   }
   return false;
 }
