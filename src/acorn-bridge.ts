@@ -221,8 +221,10 @@ export const tweaks: Plugin = definePlugin((Base) => {
       );
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-empty-function -- svelte's acorn.js doesn't check that exported names are declared
-    override checkLocalExport() {}
+    override checkLocalExport() {
+      // Not checked, since svelte's acorn.js doesn't check that exported
+      // names are declared.
+    }
 
     override skipSpace() {
       const input = this.input;

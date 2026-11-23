@@ -1647,8 +1647,10 @@ export const tsPlugin: Plugin = definePlugin((Base) => {
       super.checkLocalExport(id);
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-empty-function -- TypeScript's overloads and merged declarations export a name more than once
-    override checkExport() {}
+    override checkExport() {
+      // Not checked: TypeScript's overloads and merged declarations export a
+      // name more than once.
+    }
 
     override raiseRecoverable(pos: number, message: string) {
       if (message === "Duplicate constructor in the same class") return;

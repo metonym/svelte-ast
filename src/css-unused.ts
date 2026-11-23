@@ -1668,8 +1668,13 @@ function gatherPossibleValues(
           }
         } else {
           for (const value of left) {
-            // eslint-disable-next-line eqeqeq -- svelte's check, null and undefined both
-            if (!value && value != undefined && (!isClass || !isNested))
+            // svelte's check: a falsy value that's neither null nor undefined.
+            if (
+              !value &&
+              value !== null &&
+              value !== undefined &&
+              (!isClass || !isNested)
+            )
               set.add(value);
           }
         }
