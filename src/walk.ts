@@ -240,17 +240,13 @@ export const visitorKeys = {
   TSTypeAssertion: ["typeAnnotation", "expression"],
   TSNonNullExpression: ["expression"],
   TSInstantiationExpression: ["expression", "typeArguments"],
-} as const satisfies {
-  readonly [T in NodeType]: readonly ChildKey<T>[];
-};
+} as const;
 
 /**
  * A table of the fields of each node type that {@link walk} visits, such
  * as {@link visitorKeys} or {@link markupVisitorKeys}.
  */
 export type VisitorKeys = Readonly<Partial<Record<string, readonly string[]>>>;
-
-const ELEMENT = ["attributes", "fragment"] as const;
 
 /**
  * The fields of the markup's nodes that hold other markup nodes, for a
@@ -280,47 +276,30 @@ export const markupVisitorKeys = {
   StyleDirective: ["value"],
   TransitionDirective: [],
   UseDirective: [],
-  Component: ELEMENT,
-  TitleElement: ELEMENT,
-  SlotElement: ELEMENT,
-  RegularElement: ELEMENT,
-  SvelteBody: ELEMENT,
-  SvelteBoundary: ELEMENT,
-  SvelteComponent: ELEMENT,
-  SvelteDocument: ELEMENT,
-  SvelteElement: ELEMENT,
-  SvelteFragment: ELEMENT,
-  SvelteHead: ELEMENT,
-  SvelteOptions: ELEMENT,
-  SvelteSelf: ELEMENT,
-  SvelteWindow: ELEMENT,
+  Component: ["attributes", "fragment"],
+  TitleElement: ["attributes", "fragment"],
+  SlotElement: ["attributes", "fragment"],
+  RegularElement: ["attributes", "fragment"],
+  SvelteBody: ["attributes", "fragment"],
+  SvelteBoundary: ["attributes", "fragment"],
+  SvelteComponent: ["attributes", "fragment"],
+  SvelteDocument: ["attributes", "fragment"],
+  SvelteElement: ["attributes", "fragment"],
+  SvelteFragment: ["attributes", "fragment"],
+  SvelteHead: ["attributes", "fragment"],
+  SvelteOptions: ["attributes", "fragment"],
+  SvelteSelf: ["attributes", "fragment"],
+  SvelteWindow: ["attributes", "fragment"],
   IfBlock: ["consequent", "alternate"],
   EachBlock: ["body", "fallback"],
   AwaitBlock: ["pending", "then", "catch"],
   KeyBlock: ["fragment"],
   SnippetBlock: ["body"],
-} as const satisfies {
-  readonly [T in NodeType]?: readonly ChildKey<T>[];
-};
+} as const;
 
-const TYPE = [] as const;
-
-/**
- * {@link visitorKeys} without TypeScript's types: a {@link walk} with it
- * reaches every value and binding but no type annotation, type
- * parameter, type argument, `implements` clause or type in `as` and
- * `satisfies`, so an `Identifier` it reaches in a TypeScript node is
- * never a type's name. It still enters a declaration that holds only
- * types, such as `type T = ...`, `interface I {}` or an index signature,
- * but not its children, and of `declare function f(): void` it visits
- * only the name. The
- * TypeScript nodes it enters children of hold values: `as`,
- * `satisfies`, `<T>a`, `a!` and `a<T>` hold their expression, an enum
- * its members, a namespace its body, `import a = b` and `export =` their
- * value, and a parameter property its parameter.
- */
-export const valueVisitorKeys = {
-  ...visitorKeys,
+// The fields valueVisitorKeys changes, apart from the spread, since a
+// declaration emitter can't type a spread literal without checking.
+const valueOverrides = {
   FunctionDeclaration: ["id", "params", "body"],
   FunctionExpression: ["id", "params", "body"],
   ArrowFunctionExpression: ["params", "body"],
@@ -336,57 +315,80 @@ export const valueVisitorKeys = {
   ObjectPattern: ["decorators", "properties"],
   ArrayPattern: ["decorators", "elements"],
 
-  TSTypeAnnotation: TYPE,
-  TSTypeParameterDeclaration: TYPE,
-  TSTypeParameterInstantiation: TYPE,
-  TSTypeParameter: TYPE,
-  TSArrayType: TYPE,
-  TSTupleType: TYPE,
-  TSNamedTupleMember: TYPE,
-  TSOptionalType: TYPE,
-  TSRestType: TYPE,
-  TSUnionType: TYPE,
-  TSIntersectionType: TYPE,
-  TSConditionalType: TYPE,
-  TSInferType: TYPE,
-  TSParenthesizedType: TYPE,
-  TSTypeOperator: TYPE,
-  TSIndexedAccessType: TYPE,
-  TSMappedType: TYPE,
-  TSLiteralType: TYPE,
-  TSTypeReference: TYPE,
-  TSTypeQuery: TYPE,
-  TSImportType: TYPE,
-  TSTypeLiteral: TYPE,
-  TSPropertySignature: TYPE,
-  TSMethodSignature: TYPE,
-  TSCallSignatureDeclaration: TYPE,
-  TSConstructSignatureDeclaration: TYPE,
-  TSFunctionType: TYPE,
-  TSConstructorType: TYPE,
-  TSIndexSignature: TYPE,
-  TSTypePredicate: TYPE,
-  TSInterfaceDeclaration: TYPE,
-  TSInterfaceBody: TYPE,
-  TSExpressionWithTypeArguments: TYPE,
-  TSTypeAliasDeclaration: TYPE,
-  TSNamespaceExportDeclaration: TYPE,
+  TSTypeAnnotation: [],
+  TSTypeParameterDeclaration: [],
+  TSTypeParameterInstantiation: [],
+  TSTypeParameter: [],
+  TSArrayType: [],
+  TSTupleType: [],
+  TSNamedTupleMember: [],
+  TSOptionalType: [],
+  TSRestType: [],
+  TSUnionType: [],
+  TSIntersectionType: [],
+  TSConditionalType: [],
+  TSInferType: [],
+  TSParenthesizedType: [],
+  TSTypeOperator: [],
+  TSIndexedAccessType: [],
+  TSMappedType: [],
+  TSLiteralType: [],
+  TSTypeReference: [],
+  TSTypeQuery: [],
+  TSImportType: [],
+  TSTypeLiteral: [],
+  TSPropertySignature: [],
+  TSMethodSignature: [],
+  TSCallSignatureDeclaration: [],
+  TSConstructSignatureDeclaration: [],
+  TSFunctionType: [],
+  TSConstructorType: [],
+  TSIndexSignature: [],
+  TSTypePredicate: [],
+  TSInterfaceDeclaration: [],
+  TSInterfaceBody: [],
+  TSExpressionWithTypeArguments: [],
+  TSTypeAliasDeclaration: [],
+  TSNamespaceExportDeclaration: [],
   TSDeclareFunction: ["id"],
-  TSDeclareMethod: TYPE,
+  TSDeclareMethod: [],
   TSAsExpression: ["expression"],
   TSSatisfiesExpression: ["expression"],
   TSTypeAssertion: ["expression"],
   TSInstantiationExpression: ["expression"],
-} as const satisfies {
-  readonly [T in NodeType]: readonly ChildKey<T>[];
-};
+} as const;
+/**
+ * {@link visitorKeys} without TypeScript's types: a {@link walk} with it
+ * reaches every value and binding but no type annotation, type
+ * parameter, type argument, `implements` clause or type in `as` and
+ * `satisfies`, so an `Identifier` it reaches in a TypeScript node is
+ * never a type's name. It still enters a declaration that holds only
+ * types, such as `type T = ...`, `interface I {}` or an index signature,
+ * but not its children, and of `declare function f(): void` it visits
+ * only the name. The
+ * TypeScript nodes it enters children of hold values: `as`,
+ * `satisfies`, `<T>a`, `a!` and `a<T>` hold their expression, an enum
+ * its members, a namespace its body, `import a = b` and `export =` their
+ * value, and a parameter property its parameter.
+ */
+export const valueVisitorKeys: Omit<
+  typeof visitorKeys,
+  keyof typeof valueOverrides
+> &
+  typeof valueOverrides = { ...visitorKeys, ...valueOverrides };
 
-const keysByType: Partial<Record<string, readonly string[]>> = Object.assign(
-  dict<readonly string[]>(),
-  visitorKeys,
-);
-const valueKeysByType: Partial<Record<string, readonly string[]>> =
-  Object.assign(dict<readonly string[]>(), valueVisitorKeys);
+type KeyTable = { readonly [T in NodeType]: readonly ChildKey<T>[] };
+
+// The tables are checked here, not where they're declared, so their
+// types stay plain literals a declaration emitter reads without checking.
+const keyTable = (
+  table: Partial<KeyTable>,
+): Partial<Record<string, readonly string[]>> =>
+  Object.assign(dict<readonly string[]>(), table);
+
+const keysByType = keyTable(visitorKeys satisfies KeyTable);
+const valueKeysByType = keyTable(valueVisitorKeys satisfies KeyTable);
+const markupKeysByType = keyTable(markupVisitorKeys);
 const NO_KEYS: readonly string[] = [];
 
 /**
@@ -447,6 +449,7 @@ export function walk(
 function keysOfTable(keys: VisitorKeys | undefined): KeysOf {
   if (keys === undefined || keys === visitorKeys) return keysOf;
   if (keys === valueVisitorKeys) return valueKeysOf;
+  if (keys === markupVisitorKeys) return markupKeysOf;
   return (node) => ownKeys(keys, node.type);
 }
 
@@ -465,6 +468,7 @@ function keysIn(
 ): readonly string[] | undefined {
   if (keys === undefined || keys === visitorKeys) return keysOf(node);
   if (keys === valueVisitorKeys) return valueKeysOf(node);
+  if (keys === markupVisitorKeys) return markupKeysOf(node);
   return ownKeys(keys, node.type);
 }
 
@@ -592,6 +596,10 @@ function valueKeysOf(node: AST.SvelteNode): readonly string[] | undefined {
   if (type === "Literal") return valueVisitorKeys.Literal;
   if (type === "Text") return valueVisitorKeys.Text;
   return valueKeysByType[type];
+}
+
+function markupKeysOf(node: AST.SvelteNode): readonly string[] | undefined {
+  return markupKeysByType[node.type];
 }
 
 function replace(
