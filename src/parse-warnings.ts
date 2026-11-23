@@ -3,7 +3,10 @@
 // `this` attribute, which the AST keeps only as its tag.
 import type { AST } from "./types/svelte-ast";
 
-/** svelte's `element_implicitly_closed`: `by` closed the element, which wants `closing`. */
+/**
+ * svelte's `element_implicitly_closed`: `by` closed the element, which
+ * wants `closing`.
+ */
 interface ImplicitClose {
   code: "element_implicitly_closed";
   start: number;
@@ -12,7 +15,10 @@ interface ImplicitClose {
   closing: string;
 }
 
-/** svelte's `svelte_element_invalid_this`: `this="…"` on a `<svelte:element>`. */
+/**
+ * svelte's `svelte_element_invalid_this`: `this="…"` on a
+ * `<svelte:element>`.
+ */
 interface InvalidThis {
   code: "svelte_element_invalid_this";
   start: number;

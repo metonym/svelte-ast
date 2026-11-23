@@ -1,4 +1,5 @@
 import { isIdentifierChar, isIdentifierStart } from "acorn";
+
 import type { ParserConstructor } from "./acorn-internals";
 import {
   expected_token,

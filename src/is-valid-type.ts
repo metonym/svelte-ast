@@ -1,4 +1,5 @@
 import { Parser } from "acorn";
+
 import { isCommonType } from "./common-type";
 import { tsPlugin } from "./ts-plugin";
 
@@ -6,11 +7,12 @@ import { tsPlugin } from "./ts-plugin";
 const TypeParser: any = Parser.extend(tsPlugin);
 
 /**
- * Whether `text` is exactly one TypeScript type, e.g. a JSDoc `{"sm" | "lg"}`
- * about to be copied into a `.d.ts`: the type on the right of
- * `type T = ...`, with nothing before or after it but whitespace and
- * comments. Parsed on its own, not wrapped in a statement, so a `;`, a line
- * break or a `}` in `text` can't end the type and start something else.
+ * Whether `text` is exactly one TypeScript type, e.g. a JSDoc
+ * `{"sm" | "lg"}` about to be copied into a `.d.ts`: the type on the right
+ * of `type T = ...`, with nothing before or after it but whitespace and
+ * comments. Parsed on its own, not wrapped in a statement, so a `;`, a
+ * line break or a `}` in `text` can't end the type and start something
+ * else.
  */
 export function isValidType(
   text: string,

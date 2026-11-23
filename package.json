@@ -1,55 +1,58 @@
 {
   "name": "svelte-ast",
   "version": "0.12.1",
+  "description": "svelte/compiler's AST, 2.4\u00d7 faster, with zero dependencies.",
   "license": "MIT",
-  "description": "Fast, zero-dependency Svelte 5 parser with svelte/compiler's AST",
   "author": "Eric Liu (https://github.com/metonym)",
-  "type": "module",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
-  "sideEffects": false,
-  "scripts": {
-    "build": "bun scripts/build.ts",
-    "test": "bun test --parallel ./tests",
-    "test:changed": "bivium run --suite unit",
-    "test:package": "bun scripts/test-package.ts",
-    "bench": "ostia bench bench/parse.bench.ts",
-    "bench:ab": "ostia ab bench/svelte-ast.bench.ts",
-    "bench:svelte-ast": "ostia bench bench/svelte-ast.bench.ts",
-    "bench:mem": "bun bench/mem.ts",
-    "bench:cold": "bun bench/cold.ts",
-    "bench:size": "bun bench/size.ts",
-    "fuzz": "bun scripts/fuzz-parser.ts",
-    "typecheck": "bun check",
-    "knip": "knip-bun",
-    "lint:all": "bun fmt && bun lint --fix",
-    "lint:changed": "bun fmt --staged && bun lint --staged --fix"
-  },
-  "devDependencies": {
-    "@sveltejs/acorn-typescript": "1.0.13",
-    "@types/bun": "^1.4.4",
-    "@types/estree": "^1.0.9",
-    "@types/jest": "^30.0.0",
-    "@typescript/typescript6": "^6.0.2",
-    "acorn": "^8.19.0",
-    "bivium": "^0.4.0",
-    "knip": "^6.43.0",
-    "ostia": "^0.2.12",
-    "svelte": "5.58.0",
-    "typescript": "^7.0.2"
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/metonym/svelte-ast.git"
   },
   "homepage": "https://github.com/metonym/svelte-ast",
   "bugs": "https://github.com/metonym/svelte-ast/issues",
-  "keywords": [
-    "svelte",
-    "parser",
-    "ast",
-    "typescript",
-    "acorn",
-    "zero-dependency"
-  ]
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "default": "./index.js"
+    },
+    "./a11y": {
+      "types": "./a11y.d.ts",
+      "default": "./a11y.js"
+    },
+    "./core": {
+      "types": "./core.d.ts",
+      "default": "./core.js"
+    },
+    "./walk": {
+      "types": "./walk.d.ts",
+      "default": "./walk.js"
+    },
+    "./lexer": {
+      "types": "./lexer.d.ts",
+      "default": "./lexer.js"
+    },
+    "./scope": {
+      "types": "./scope.d.ts",
+      "default": "./scope.js"
+    },
+    "./module": {
+      "types": "./module.d.ts",
+      "default": "./module.js"
+    },
+    "./entities": {
+      "types": "./entities.d.ts",
+      "default": "./entities.js"
+    },
+    "./warnings": {
+      "types": "./warnings.d.ts",
+      "default": "./warnings.js"
+    },
+    "./typescript": {
+      "types": "./typescript.d.ts",
+      "default": "./typescript.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "sideEffects": false
 }

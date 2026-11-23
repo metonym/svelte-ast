@@ -12,7 +12,8 @@ export interface ParseOptions {
   /**
    * Parse `<style>` into rules and selectors (`css.children`). With `false`,
    * `css` still has its `start`, `end` and `content`, but `children` and
-   * `comments` are empty and CSS syntax errors aren't reported. Default `true`.
+   * `comments` are empty and CSS syntax errors aren't reported. Default
+   * `true`.
    */
   css?: boolean;
   /**
@@ -66,12 +67,18 @@ export interface ParseImportsExportsOptions {
   localExports?: boolean;
 }
 
-/** TypeScript support for {@link createParser} and {@link createModuleParser}, from `svelte-ast/typescript`. */
+/**
+ * TypeScript support for {@link createParser} and {@link
+ * createModuleParser}, from `svelte-ast/typescript`.
+ */
 export interface TypeScriptSupport {
   readonly support: "typescript";
 }
 
-/** HTML's named character references for {@link createParser}, from `svelte-ast/entities`. */
+/**
+ * HTML's named character references for {@link createParser}, from
+ * `svelte-ast/entities`.
+ */
 export interface EntitySupport {
   readonly support: "entities";
 }

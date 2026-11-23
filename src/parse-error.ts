@@ -1,4 +1,4 @@
-import { type Location, lineText, locate } from "./locator";
+import { lineText, locate, type Location } from "./locator";
 
 export type NodeLike = number | { start?: number; end?: number } | null;
 

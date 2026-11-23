@@ -20,7 +20,10 @@ export type {
 } from "./component-lexer";
 export { lexComponent } from "./component-lexer";
 
-/** A module specifier: the string after `from`, or after `import` in `import "a"`. */
+/**
+ * A module specifier: the string after `from`, or after `import` in
+ * `import "a"`.
+ */
 export interface LexedSource {
   /** The string's value, with escapes decoded. */
   value: string;
@@ -32,9 +35,15 @@ export interface LexedSource {
 
 /** A name an `import` binds. */
 export interface LexedImportSpecifier {
-  /** `"default"` for `a` in `import a from`, `"namespace"` for `* as a`, `"named"` for a name in braces. */
+  /**
+   * `"default"` for `a` in `import a from`, `"namespace"` for `* as a`,
+   * `"named"` for a name in braces.
+   */
   kind: "default" | "namespace" | "named";
-  /** The name in the imported module: `"default"`, `"*"` for a namespace, or the name before `as`, with a string's value for `"a-b" as c`. */
+  /**
+   * The name in the imported module: `"default"`, `"*"` for a namespace, or
+   * the name before `as`, with a string's value for `"a-b" as c`.
+   */
   imported: string;
   /** The name it's bound to in this module. */
   local: string;
@@ -46,11 +55,22 @@ export interface LexedImportSpecifier {
   end: number;
 }
 
-/** A name an `export … from` re-exports, or, with `exportLists`, one an `export { … }` without `from` exports. */
+/**
+ * A name an `export … from` re-exports, or, with `exportLists`, one an
+ * `export { … }` without `from` exports.
+ */
 export interface LexedExportSpecifier {
-  /** `"all"` for `export *`, `"namespace"` for `export * as a`, `"named"` for a name in braces, `"local"` for a name in an `export { … }` without `from`. */
+  /**
+   * `"all"` for `export *`, `"namespace"` for `export * as a`, `"named"` for
+   * a name in braces, `"local"` for a name in an `export { … }` without
+   * `from`.
+   */
   kind: "all" | "namespace" | "named" | "local";
-  /** The name in the other module: `"*"` for `all` and `namespace`, or the name before `as`, with a string's value for `"a-b" as c`; for `local`, the binding in this module. */
+  /**
+   * The name in the other module: `"*"` for `all` and `namespace`, or the
+   * name before `as`, with a string's value for `"a-b" as c`; for `local`,
+   * the binding in this module.
+   */
   local: string;
   /** The name it's exported as, or `null` for `export *`. */
   exported: string | null;
@@ -67,7 +87,10 @@ interface LexedStatementBase {
   start: number;
   /** The offset after the statement's `;`, or its last token without one. */
   end: number;
-  /** The module it imports from, or `null` for an `export { … }` without `from`, or a statement the lexer doesn't recognize. */
+  /**
+   * The module it imports from, or `null` for an `export { … }` without
+   * `from`, or a statement the lexer doesn't recognize.
+   */
   source: LexedSource | null;
   /** Whether it's `import type` or `export type`. */
   typeOnly: boolean;
@@ -79,7 +102,10 @@ export interface LexedImport extends LexedStatementBase {
   specifiers: LexedImportSpecifier[];
 }
 
-/** An `export … from` statement, or, with `exportLists`, an `export { … }` without `from`. */
+/**
+ * An `export … from` statement, or, with `exportLists`, an `export { … }`
+ * without `from`.
+ */
 export interface LexedExport extends LexedStatementBase {
   kind: "export";
   specifiers: LexedExportSpecifier[];
@@ -89,15 +115,25 @@ export type LexedStatement = LexedImport | LexedExport;
 
 /** Options for {@link lexImportsExports}. */
 export interface LexImportsExportsOptions {
-  /** Also return the module's `export { a, b as c }` statements without `from`, whose specifiers have kind `"local"`. Default `false`. */
+  /**
+   * Also return the module's `export { a, b as c }` statements without
+   * `from`, whose specifiers have kind `"local"`. Default `false`.
+   */
   exportLists?: boolean;
 }
 
 /** An `import(…)`, a `require(…)` or Vite's `import.meta.glob(…)`. */
 export interface LexedDynamicImport {
-  /** `"import"` for `import(…)`, `"require"` for `require(…)`, `"glob"` for `import.meta.glob(…)`. */
+  /**
+   * `"import"` for `import(…)`, `"require"` for `require(…)`, `"glob"` for
+   * `import.meta.glob(…)`.
+   */
   kind: "import" | "require" | "glob";
-  /** The first argument, if it's a string or a template without `${…}` followed by `)` or `,`; `null` for a computed one. A template's `start` and `end` include its backticks. */
+  /**
+   * The first argument, if it's a string or a template without `${…}`
+   * followed by `)` or `,`; `null` for a computed one. A template's `start`
+   * and `end` include its backticks.
+   */
   source: LexedSource | null;
   /** The offset of `import` or `require`. */
   start: number;
@@ -105,15 +141,32 @@ export interface LexedDynamicImport {
   end: number;
 }
 
-/** A string literal, or the text of a template literal between two of its delimiters. */
+/**
+ * A string literal, or the text of a template literal between two of its
+ * delimiters.
+ */
 export interface LexedString {
-  /** `"string"` for a string literal, where `parseModule` has a `Literal`; `"template"` for a template's text, where it has a `TemplateElement`. */
+  /**
+   * `"string"` for a string literal, where `parseModule` has a `Literal`;
+   * `"template"` for a template's text, where it has a `TemplateElement`.
+   */
   kind: "string" | "template";
-  /** The value with escapes decoded, as a `Literal`'s `value` or a `TemplateElement`'s `value.cooked`: a template's line breaks read as `\n`. `null` for an escape that acorn rejects in a module, or that leaves a tagged template's `cooked` `null`. */
+  /**
+   * The value with escapes decoded, as a `Literal`'s `value` or a
+   * `TemplateElement`'s `value.cooked`: a template's line breaks read as
+   * `\n`. `null` for an escape that acorn rejects in a module, or that
+   * leaves a tagged template's `cooked` `null`.
+   */
   value: string | null;
-  /** The offset of the opening quote, or of a template's text, after its backtick or `}`. */
+  /**
+   * The offset of the opening quote, or of a template's text, after its
+   * backtick or `}`.
+   */
   start: number;
-  /** The offset after the closing quote, or of the backtick or `${` after a template's text. */
+  /**
+   * The offset after the closing quote, or of the backtick or `${` after a
+   * template's text.
+   */
   end: number;
 }
 

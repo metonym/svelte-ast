@@ -127,7 +127,10 @@ class TemplateWarnings {
     if (!ignores.has(code)) this.report(node, code, message + link(code));
   }
 
-  /** Visits a fragment's nodes, as svelte's analyzer with its `svelte-ignore` comments. */
+  /**
+   * Visits a fragment's nodes, as svelte's analyzer with its `svelte-ignore`
+   * comments.
+   */
   private fragment(nodes: readonly Node[], ignored: ReadonlySet<string>): void {
     for (let i = 0; i < nodes.length; i++) {
       const node = nodes[i];
@@ -160,7 +163,10 @@ class TemplateWarnings {
     this.path.pop();
   }
 
-  /** Visits `node`'s fragment with `parentElement` as svelte's `parent_element`. */
+  /**
+   * Visits `node`'s fragment with `parentElement` as svelte's
+   * `parent_element`.
+   */
   private within(
     parentElement: string | null,
     nodes: readonly Node[],
@@ -425,7 +431,10 @@ class TemplateWarnings {
     }
   }
 
-  /** svelte's `check_global_event_reference`: `onclick={onclick}` with no `onclick` declared. */
+  /**
+   * svelte's `check_global_event_reference`: `onclick={onclick}` with no
+   * `onclick` declared.
+   */
   private globalEventReference(
     attribute: AST.Attribute,
     expression: Expression,
@@ -537,7 +546,10 @@ class TemplateWarnings {
     }
   }
 
-  /** `bind:value={rest.x}` where `rest` comes from `...rest` in an `{#each}`'s context. */
+  /**
+   * `bind:value={rest.x}` where `rest` comes from `...rest` in an
+   * `{#each}`'s context.
+   */
   private bindEachRest(
     node: AST.BindDirective,
     ignores: ReadonlySet<string>,
@@ -652,7 +664,10 @@ class TemplateWarnings {
     return [this.generate(name), basename];
   }
 
-  /** svelte's `Scope#generate` for the component's name, before anything else is generated. */
+  /**
+   * svelte's `Scope#generate` for the component's name, before anything else
+   * is generated.
+   */
   private generate(preferred: string): string {
     const base = preferred
       .replace(NOT_IDENTIFIER, "_")

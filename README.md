@@ -1,6 +1,6 @@
 # svelte-ast
 
-> svelte/compiler's AST, 2.4× faster, with zero dependencies.
+svelte/compiler's AST, 2.4× faster, with zero dependencies.
 
 | | svelte-ast | svelte/compiler |
 |:---|:---|:---|
@@ -9,7 +9,8 @@
 | `parse` for the browser, gzipped | **58.5 kB** | 126.7 kB |
 | Memory retained by ten parses kept alive | **147 MB** | 294 MB |
 
-Apple M2; see [Parity and performance](#parity-and-performance) for how they're measured.
+Apple M2; see [Parity and performance](#parity-and-performance) for how
+they're measured.
 
 ```sh
 bun i svelte-ast
@@ -24,9 +25,20 @@ ast.instance?.content.body; // [VariableDeclaration]
 ast.fragment.nodes; // [Text, RegularElement]
 ```
 
-Parse `.svelte` components, including `<script lang="ts">`, into the same AST, and the same errors, as `svelte/compiler`'s `parse(source, { modern: true })`. svelte-ast has no dependencies and uses no Node APIs, so it runs in the browser as well as in Node, Bun and Deno.
+Parse `.svelte` components, including `<script lang="ts">`,
+into the same AST, and the same errors,
+as `svelte/compiler`'s `parse(source, { modern: true })`.
+svelte-ast has no dependencies and uses no Node APIs,
+so it runs in the browser as well as in Node, Bun and Deno.
 
-It's for tools that analyze components statically, such as documentation and type generators that read a component's props, events and slots. They need only the AST, but parse every component in a library, often on every change. [sveld](https://github.com/carbon-design-system/sveld), which generates TypeScript definitions and documentation for Svelte components, uses it.
+It's for tools that analyze components statically,
+such as documentation and type generators that read a component's props,
+events and slots.
+They need only the AST, but parse every component in a library,
+often on every change.
+[sveld](https://github.com/carbon-design-system/sveld),
+which generates TypeScript definitions and documentation for Svelte
+components, uses it.
 
 | Function | For | Import from |
 |:---|:---|:---|
@@ -42,7 +54,7 @@ It's for tools that analyze components statically, such as documentation and typ
 | [`isValidType`](#isvalidtypetext-options--boolean) | Whether a JSDoc type is safe to copy into a `.d.ts` | `svelte-ast` |
 | [`isRunesMode`](#isrunesmodesource--boolean) | Whether svelte compiles a component in runes mode, mostly without parsing it | `svelte-ast` |
 | [`walk`, `visitorKeys`, `markupVisitorKeys`, `valueVisitorKeys`, `skipTypeWrappers`](#walknode-visitor-keys--void) | Visit, skip, stop at or replace nodes, in the whole AST, only the markup, or everything but TypeScript's types | `svelte-ast`, `svelte-ast/walk` |
-| [`children`, `forEachChild`](#childrennode-keys--node-and-foreachchildnode-callback-keys--void) | A node's children, cached or without allocating | `svelte-ast`, `svelte-ast/walk` |
+| [`children`, `forEachChild`](#children-and-foreachchild) | A node's children, cached or without allocating | `svelte-ast`, `svelte-ast/walk` |
 | [`isReference`](#isreferencenode-parent--boolean), [`extractIdentifiers`](#extractidentifierspattern--identifier) | Which identifiers are references, and which ones a pattern declares | `svelte-ast`, `svelte-ast/walk` |
 | [`analyzeScopes`](#analyzescopesast-options--scopes) | Which declaration each name refers to, and every read and write of it | `svelte-ast`, `svelte-ast/scope` |
 | [`a11yWarnings`](#a11ywarningsast-options--a11ywarning) | svelte's accessibility warnings, without compiling | `svelte-ast/a11y` |
@@ -51,7 +63,8 @@ It's for tools that analyze components statically, such as documentation and typ
 
 ## Migrating from svelte/compiler
 
-svelte-ast is a drop-in for `parse` in most tools: change the import, and pass `loc: true` if you read line and column numbers.
+svelte-ast is a drop-in for `parse` in most tools: change the import,
+and pass `loc: true` if you read line and column numbers.
 
 ```diff
 - import { type AST, parse } from "svelte/compiler";
@@ -72,7 +85,8 @@ svelte-ast is a drop-in for `parse` in most tools: change the import, and pass `
 
 ## Examples
 
-**List the components a file renders**, e.g. to build a dependency graph:
+**List the components a file renders**,
+e.g. to build a dependency graph:
 
 ```ts
 import { parse, walk } from "svelte-ast";
@@ -88,7 +102,8 @@ function componentsUsed(source: string): string[] {
 }
 ```
 
-**Report syntax errors**, e.g. in a pre-commit check, with svelte's own messages:
+**Report syntax errors**, e.g. in a pre-commit check,
+with svelte's own messages:
 
 ```ts
 import { ParseError, parse } from "svelte-ast";
@@ -101,14 +116,31 @@ try {
 }
 ```
 
-[`examples/`](examples) has runnable versions of these and more, each a CLI you can point at your own components: a module graph, unused imports and variables, unused CSS classes, runes-or-legacy detection, `$props()` and their defaults, `.d.ts` props from JSDoc, and styles without parsing them.
+[`examples/`](examples) has runnable versions of these and more,
+each a CLI you can point at your own components: a module graph,
+unused imports and variables, unused CSS classes,
+runes-or-legacy detection, `$props()` and their defaults,
+`.d.ts` props from JSDoc, and styles without parsing them.
 
 ## Parity and performance
 
-- **svelte/compiler parity.** Tested on over 12,000 components: carbon-components-svelte, svelte's own test suite, bits-ui, shadcn-svelte, skeleton, flowbite-svelte, svelte.dev, immich, SvelteKit, melt-ui, layerchart and paneforge. Every one either parses to svelte's AST, `loc` included, or throws svelte's error with the same code, message, position and frame. A differential fuzzer compares the two parsers on mutated components.
-- **TypeScript.** `<script lang="ts">` and `.ts` modules parse to svelte's AST, key order and `loc` included, on 6,604 real-world modules and on all but 2 of the 9,586 TypeScript conformance tests svelte parses.
+- **svelte/compiler parity.**
+  Tested on over 12,000 components: carbon-components-svelte,
+  svelte's own test suite, bits-ui, shadcn-svelte, skeleton,
+  flowbite-svelte, svelte.dev, immich, SvelteKit, melt-ui,
+  layerchart and paneforge.
+  Every one either parses to svelte's AST, `loc` included,
+  or throws svelte's error with the same code, message,
+  position and frame.
+  A differential fuzzer compares the two parsers on mutated components.
+- **TypeScript.**
+  `<script lang="ts">` and `.ts` modules parse to svelte's AST,
+  key order and `loc` included, on 6,604 real-world modules and on all
+  but 2 of the 9,586 TypeScript conformance tests svelte parses.
 
-Apple M2, medians of warm calls. The corpus is `tests/corpus`: all of carbon-components-svelte plus svelte's and sveld's test inputs.
+Apple M2, medians of warm calls.
+The corpus is `tests/corpus`: all of carbon-components-svelte plus
+svelte's and sveld's test inputs.
 
 | Input | svelte-ast | svelte-ast, `loc: true` | svelte/compiler |
 |:---|:---|:---|:---|
@@ -122,7 +154,11 @@ Apple M2, medians of warm calls. The corpus is `tests/corpus`: all of carbon-com
 | svelte-ast | **58.5 kB** |
 | `svelte-ast/core`'s `createParser()`, without TypeScript and named HTML entities | **41.0 kB** |
 
-In a fresh process, importing the parser takes 5.3 ms with svelte-ast and 44.7 ms with `svelte/compiler`, and a first parse of the whole corpus takes 65 ms against 161 ms. Keeping ten parses of the corpus alive retains 147 MB with svelte-ast, 260 MB with `loc: true`, and 294 MB with `svelte/compiler`.
+In a fresh process, importing the parser takes 5.3 ms with svelte-ast
+and 44.7 ms with `svelte/compiler`, and a first parse of the whole
+corpus takes 65 ms against 161 ms.
+Keeping ten parses of the corpus alive retains 147 MB with svelte-ast,
+260 MB with `loc: true`, and 294 MB with `svelte/compiler`.
 
 ## API
 
@@ -135,13 +171,33 @@ In a fresh process, importing the parser takes 5.3 ms with svelte-ast and 44.7 m
 | `script` | `true` | Parse each `<script>`. With `false`, `instance` and `module` keep their attributes, `start` and `end`, and `content` is a `Program` with an empty `body`; their comments aren't collected and their syntax errors aren't reported. Expressions in the markup are still parsed. For a pass that only reads the markup; 3.4× faster on the benchmark corpus. |
 | `comments` | `true` | Collect JavaScript comments, in scripts, expressions and tags. With `false`, `comments` is empty and no node has `leadingComments` or `trailingComments`, including the HTML comment before a `<script>` that svelte copies into its `content.leadingComments`. HTML and CSS comments are kept. 3 to 6% faster, and 8% less memory. |
 
-With `loc: true`, the result equals svelte's. With the defaults, it's svelte's without `loc` and `name_loc`.
+With `loc: true`, the result equals svelte's.
+With the defaults, it's svelte's without `loc` and `name_loc`.
 
-A syntax error throws a `ParseError` with svelte's `code` (e.g. `"block_unclosed"`), `message`, `position` (`[start, end]` offsets), `start`/`end` (`{ line, column, character }`) and `frame` (the source around the error). `message` is always the reason, a line break, then the link to the error's docs, `https://svelte.dev/e/${code}`; `reason` is the reason on its own, e.g. `"Unexpected token"`.
+A syntax error throws a `ParseError` with svelte's `code`
+(e.g. `"block_unclosed"`), `message`,
+`position` (`[start, end]` offsets),
+`start`/`end` (`{ line, column, character }`)
+and `frame` (the source around the error).
+`message` is always the reason, a line break,
+then the link to the error's docs, `https://svelte.dev/e/${code}`;
+`reason` is the reason on its own, e.g. `"Unexpected token"`.
 
 ### `parseSections(source, options?) => AST.Root`
 
-`parse` for a pass that only reads a component's scripts, such as its props or its module script's exports: the top-level `<script>`s, `<style>` and `<svelte:options>` are parsed as `parse` parses them, and the markup between them is skipped as [`lexComponent`](#lexcomponentsource--lexedcomponent) skips it. `fragment.nodes` is empty, `comments` has only the scripts' comments, and the markup's syntax errors aren't reported; the rest is `parse`'s, offsets and the HTML comment before a `<script>` included. It takes `parse`'s options, and on the benchmark corpus it's 1.5× faster, where most of what's left is the scripts. It's a function of its own so that a bundle with only `parse` doesn't carry the lexer; `createParser` doesn't return it, and `createSectionsParser` does, without the parts you leave out.
+`parse` for a pass that only reads a component's scripts,
+such as its props or its module script's exports:
+the top-level `<script>`s, `<style>` and `<svelte:options>` are parsed
+as `parse` parses them, and the markup between them is skipped as
+[`lexComponent`](#lexcomponentsource--lexedcomponent) skips it.
+`fragment.nodes` is empty, `comments` has only the scripts' comments,
+and the markup's syntax errors aren't reported; the rest is `parse`'s,
+offsets and the HTML comment before a `<script>` included.
+It takes `parse`'s options, and on the benchmark corpus it's 1.5×
+faster, where most of what's left is the scripts.
+It's a function of its own so that a bundle with only `parse` doesn't
+carry the lexer; `createParser` doesn't return it,
+and `createSectionsParser` does, without the parts you leave out.
 
 ```ts
 import { parseSections } from "svelte-ast";
@@ -152,13 +208,36 @@ module?.content.body; // the module script's statements, with parse's offsets
 
 ### `parseModule(source, options?) => Program`
 
-Parses a JavaScript or TypeScript module, such as a `.ts` file a component imports, into the same AST a component's `<script>` gets, with comments attached as `leadingComments`/`trailingComments`. Options: `typescript` and `loc`, default `false`, and `comments`, default `true`.
+Parses a JavaScript or TypeScript module,
+such as a `.ts` file a component imports,
+into the same AST a component's `<script>` gets,
+with comments attached as `leadingComments`/`trailingComments`.
+Options: `typescript` and `loc`, default `false`, and `comments`,
+default `true`.
 
 ### `parseImportsExports(source, options?) => ModuleDeclaration[]`
 
-A module's top-level `import` and `export` statements, without parsing the rest, e.g. to rewrite a component's imports or follow a module graph. Each node is the one `parseModule(source, { comments: false })` has for that statement: `ImportDeclaration`, `ExportNamedDeclaration`, `ExportDefaultDeclaration` and `ExportAllDeclaration`, and, in TypeScript, `TSImportEqualsDeclaration`, `TSExportAssignment` and `TSNamespaceExportDeclaration`. `import(...)` and `import.meta` are expressions, so they aren't returned; [`lexDynamicImports`](#lexdynamicimportssource--lexeddynamicimport) finds them. Unlike a regex, it never matches an `import` in a comment, a string, a template or a nested block such as `declare module "a" { ... }`.
+A module's top-level `import` and `export` statements,
+without parsing the rest, e.g. to rewrite a component's imports
+or follow a module graph.
+Each node is the one `parseModule(source, { comments: false })` has for
+that statement: `ImportDeclaration`, `ExportNamedDeclaration`,
+`ExportDefaultDeclaration` and `ExportAllDeclaration`, and,
+in TypeScript, `TSImportEqualsDeclaration`,
+`TSExportAssignment` and `TSNamespaceExportDeclaration`.
+`import(...)`
+and `import.meta` are expressions, so they aren't returned;
+[`lexDynamicImports`](#lexdynamicimportssource--lexeddynamicimport)
+finds them.
+Unlike a regex, it never matches an `import` in a comment, a string,
+a template or a nested block such as `declare module "a" { ... }`.
 
-It stops after the last `import` or `export` that could start a statement, so the code after a component's imports is never read: on Carbon's component scripts, it takes a third of `parseModule`'s time, and about a seventh with `localExports: false`. A syntax error in a statement it returns throws a `ParseError`, including a name exported twice; errors elsewhere aren't reported.
+It stops after the last `import` or `export` that could start a
+statement, so the code after a component's imports is never read:
+on Carbon's component scripts, it takes a third of `parseModule`'s time,
+and about a seventh with `localExports: false`.
+A syntax error in a statement it returns throws a `ParseError`,
+including a name exported twice; errors elsewhere aren't reported.
 
 | Option | Default | Description |
 |:---|:---|:---|
@@ -177,11 +256,34 @@ function dependencies(source: string, typescript = false): string[] {
 
 ### `lexImportsExports(source, options?) => LexedStatement[]`
 
-From `svelte-ast/lexer`, and also `svelte-ast`. A module's top-level `import` statements and `export … from` re-exports, read by hand instead of parsed, for a tool on a hot or eagerly loaded path, such as a preprocessor that rewrites a component's imports, that needs each statement's offsets, source and names, but not the AST. `svelte-ast/lexer` loads no parser, so a fresh process imports it in 1.4 ms, and on Carbon's component scripts it takes 40% of the time `parseImportsExports` takes with `localExports: false`.
+From `svelte-ast/lexer`, and also `svelte-ast`.
+A module's top-level `import` statements and `export … from` re-exports,
+read by hand instead of parsed, for a tool on a hot
+or eagerly loaded path, such as a preprocessor that rewrites a
+component's imports, that needs each statement's offsets,
+source and names, but not the AST.
+`svelte-ast/lexer` loads no parser, so a fresh process imports it in
+1.4 ms, and on Carbon's component scripts it takes 40% of the time
+`parseImportsExports` takes with `localExports: false`.
 
-It finds the statements `parseImportsExports` returns with `localExports: false`, with the same offsets, sources and names. It doesn't check syntax and never throws: a statement it can't read, such as `import { a from "a"` or `import a = require("a")`, has `source: null` and no specifiers, and ends where it stopped reading. `import type` and `type` before a name are always read.
+It finds the statements `parseImportsExports` returns with
+`localExports: false`, with the same offsets, sources and names.
+It doesn't check syntax and never throws: a statement it can't read,
+such as `import { a from "a"` or `import a = require("a")`,
+has `source: null` and no specifiers, and ends where it stopped reading.
+`import type` and `type` before a name are always read.
 
-With `exportLists: true`, it also returns each top-level `export { a, b as c }` without `from`, e.g. to follow a binding through an `index.js` that imports it and exports it again: `source` is `null`, and each specifier has kind `local`, with `local` the binding in this module. Those are the `ExportNamedDeclaration`s without a declaration that `parseImportsExports` returns with `localExports: true`; `export const a`, `export function b` and `export default` still aren't returned. A module that ends with an export list is read to its end.
+With `exportLists: true`, it also returns each top-level
+`export { a, b as c }` without `from`,
+e.g. to follow a binding through an `index.js` that imports it
+and exports it again: `source` is `null`,
+and each specifier has kind `local`,
+with `local` the binding in this module.
+Those are the `ExportNamedDeclaration`s without a declaration that
+`parseImportsExports` returns with `localExports: true`;
+`export const a`, `export function b` and `export default` still aren't
+returned.
+A module that ends with an export list is read to its end.
 
 ```ts
 import { lexImportsExports } from "svelte-ast/lexer";
@@ -206,11 +308,25 @@ for (const statement of lexImportsExports(source)) {
 | `b as c`, `"b-c" as d` | `named`, `imported: "b"`, `local: "c"` | `named`, `local: "b"`, `exported: "c"` |
 | `b as c` in `export { … }`, with `exportLists` | | `local`, `local: "b"`, `exported: "c"` |
 
-Names are as the module sees them: escapes decoded, and a string name without its quotes. A specifier's `typeOnly` is also `true` in an `import type` or `export type`. Its `start` is that of `type` before the name, if any, and `end` is after the last name; for `export *`, after the `*`.
+Names are as the module sees them: escapes decoded,
+and a string name without its quotes.
+A specifier's `typeOnly` is also `true` in an `import type`
+or `export type`.
+Its `start` is that of `type` before the name, if any,
+and `end` is after the last name; for `export *`, after the `*`.
 
 ### `lexDynamicImports(source) => LexedDynamicImport[]`
 
-From `svelte-ast/lexer`, and also `svelte-ast`. A module's `import(…)` and `require(…)` calls and Vite's `import.meta.glob(…)`, at any depth, in source order, read without parsing, e.g. to follow the lazily loaded part of a module graph. Unlike a regular expression, it never matches in a comment, a string, a template or a regular expression, and it tells a literal argument from a computed one. `lexImportsExports` finds the static imports; together they're a module's dependencies.
+From `svelte-ast/lexer`, and also `svelte-ast`.
+A module's `import(…)` and `require(…)` calls
+and Vite's `import.meta.glob(…)`, at any depth, in source order,
+read without parsing, e.g. to follow the lazily loaded part of a module
+graph.
+Unlike a regular expression, it never matches in a comment, a string,
+a template or a regular expression, and it tells a literal argument from
+a computed one.
+`lexImportsExports` finds the static imports;
+together they're a module's dependencies.
 
 ```ts
 import { lexDynamicImports } from "svelte-ast/lexer";
@@ -223,15 +339,48 @@ for (const call of lexDynamicImports(source)) {
 }
 ```
 
-`source` is the first argument if it's a string or a template without `${…}` and it's followed by `)` or `,`, as in `import("a", { with: { type: "json" } })`; it's `null` for a computed argument such as `` import(`./${name}.js`) `` or `import.meta.glob(["a", "b"])`, and for a call without arguments. Type arguments are skipped, as in `import.meta.glob<Module>("./*.ts")`.
+`source` is the first argument if it's a string or a template without
+`${…}` and it's followed by `)` or `,`,
+as in `import("a", { with: { type: "json" } })`;
+it's `null` for a computed argument such as `` import(`./${name}.js`) ``
+or `import.meta.glob(["a", "b"])`, and for a call without arguments.
+Type arguments are skipped, as in `import.meta.glob<Module>("./*.ts")`.
 
-Where `parseModule` accepts the module, the calls are its `ImportExpression`s, its calls of an identifier `require`, `new require(…)` included, and of `import.meta.glob`, and in TypeScript also its `import("a")` types, as in `typeof import("a")`, and the `require("a")` of `import a = require("a")`. A method named `import` or `require`, such as `{ import() {} }`, isn't a call, and neither are `a.require(…)`, `require?.(…)` or `(require)(…)`. It doesn't check syntax and never throws. It matched `parseModule` on all 33,001 modules and component scripts it accepts from the projects under [Parity and performance](#parity-and-performance), svelte's tests and TypeScript's conformance tests.
+Where `parseModule` accepts the module,
+the calls are its `ImportExpression`s,
+its calls of an identifier `require`, `new require(…)` included,
+and of `import.meta.glob`, and in TypeScript also its `import("a")`
+types, as in `typeof import("a")`, and the `require("a")` of
+`import a = require("a")`.
+A method named `import` or `require`, such as `{ import() {} }`,
+isn't a call, and neither are `a.require(…)`,
+`require?.(…)` or `(require)(…)`.
+It doesn't check syntax and never throws.
+It matched `parseModule` on all 33,001 modules and component scripts it
+accepts from the projects under
+[Parity and performance](#parity-and-performance),
+svelte's tests and TypeScript's conformance tests.
 
 ### `lexComponent(source) => LexedComponent`
 
-From `svelte-ast/lexer`, and also `svelte-ast`. A component's top-level `<script>`, `<script module>`, `<style>` and `<svelte:options>`, with their attributes and the offsets of their tags and content, found without parsing: e.g. to read a component's scripts and their imports, its language or its options, or to rewrite a script, on a path that can't afford a parser. On the benchmark corpus it's about 50× faster than `parse`.
+From `svelte-ast/lexer`, and also `svelte-ast`.
+A component's top-level `<script>`, `<script module>`,
+`<style>` and `<svelte:options>`, with their attributes
+and the offsets of their tags and content, found without parsing:
+e.g. to read a component's scripts and their imports,
+its language or its options, or to rewrite a script,
+on a path that can't afford a parser.
+On the benchmark corpus it's about 50× faster than `parse`.
 
-It skips the markup by tracking only tags, attribute values, blocks, and the brackets, strings, comments and templates of each `{…}` expression, so a `<script>` in `<svelte:head>`, a block, an attribute, an expression or an HTML comment isn't one, and it stops after the last `<script`, `<style` or `<svelte:options`. Where `parse` accepts the component, the sections are its `instance`, `module`, `css` and `options`, with the same offsets, into the source without a leading byte order mark. It doesn't check syntax and never throws.
+It skips the markup by tracking only tags, attribute values, blocks,
+and the brackets, strings, comments and templates of each `{…}`
+expression, so a `<script>` in `<svelte:head>`, a block, an attribute,
+an expression or an HTML comment isn't one,
+and it stops after the last `<script`, `<style` or `<svelte:options`.
+Where `parse` accepts the component, the sections are its `instance`,
+`module`, `css` and `options`, with the same offsets,
+into the source without a leading byte order mark.
+It doesn't check syntax and never throws.
 
 ```ts
 import { lexComponent } from "svelte-ast/lexer";
@@ -244,9 +393,12 @@ module?.context; // "module"
 options?.attributes; // [{ name: "runes", value: "{true}", start, end }]
 ```
 
-An attribute's `value` is as written, without its quotes: character references aren't decoded, an expression keeps its braces, and an attribute without a value has `true`.
+An attribute's `value` is as written, without its quotes:
+character references aren't decoded, an expression keeps its braces,
+and an attribute without a value has `true`.
 
-`typescript` is what `createParser` needs to know to load the TypeScript parser only for the components that use it:
+`typescript` is what `createParser` needs to know to load the TypeScript
+parser only for the components that use it:
 
 ```ts
 import { createParser } from "svelte-ast/core";
@@ -267,9 +419,36 @@ async function parseComponent(source: string) {
 
 ### `lexStrings(source) => LexedString[]`
 
-From `svelte-ast/lexer`, and also `svelte-ast`. A module's string literals and the text of its template literals, in source order, read without parsing, for a tool that only needs a script's strings, such as one that collects the class names a component's script can produce. With `parse(source, { script: false })` for the markup, it reads a component's scripts in a fraction of the time: on Carbon's 258 components, `parse` with `comments: false` takes 19.5 ms, and `script: false` plus `lexStrings` on each script 9.6 ms, of which `lexStrings` is 1.55 ms, 15% of what `parseModule` takes on the same scripts.
+From `svelte-ast/lexer`, and also `svelte-ast`.
+A module's string literals and the text of its template literals,
+in source order, read without parsing,
+for a tool that only needs a script's strings,
+such as one that collects the class names a component's script can
+produce.
+With `parse(source, { script: false })` for the markup,
+it reads a component's scripts in a fraction of the time:
+on Carbon's 258 components, `parse` with `comments: false` takes
+19.5 ms, and `script: false` plus `lexStrings` on each script 9.6 ms,
+of which `lexStrings` is 1.55 ms, 15% of what `parseModule` takes on the
+same scripts.
 
-Where `parseModule` accepts the module, the strings are its `Literal`s with a string value and its `TemplateElement`s, types, imports and directives included, with the same offsets and values. Comments and regular expressions are skipped, and it never throws. It tells a regular expression from a division by the token before it, as acorn's tokenizer does, but acorn's parser can overrule that guess and `lexStrings` can't: a statement that starts with a regular expression after a line break without a `;`, following `let a`, an `import`, a type alias ending in `}`, or a block after `case …:` or a label, reads as a division, as does `/` after a variable named `of`, and a quote in that regular expression starts a string. It matched `parseModule` on all 21,443 modules and component scripts it accepts from the projects under [Parity and performance](#parity-and-performance), and on all 9,647 of TypeScript's conformance tests that `parseModule` accepts.
+Where `parseModule` accepts the module,
+the strings are its `Literal`s with a string value
+and its `TemplateElement`s, types, imports and directives included,
+with the same offsets and values.
+Comments and regular expressions are skipped, and it never throws.
+It tells a regular expression from a division by the token before it,
+as acorn's tokenizer does, but acorn's parser can overrule that guess
+and `lexStrings` can't: a statement that starts with a regular
+expression after a line break without a `;`, following `let a`,
+an `import`, a type alias ending in `}`, or a block after `case …:`
+or a label, reads as a division, as does `/` after a variable named
+`of`, and a quote in that regular expression starts a string.
+It matched `parseModule` on all 21,443 modules and component scripts it
+accepts from the projects under
+[Parity and performance](#parity-and-performance),
+and on all 9,647 of TypeScript's conformance tests that `parseModule`
+accepts.
 
 ```ts
 import { lexStrings } from "svelte-ast/lexer";
@@ -281,11 +460,30 @@ for (const string of lexStrings(source)) {
 }
 ```
 
-`value` is `null` for an escape acorn rejects in a module, such as `"\1"`, or one that leaves a tagged template's `cooked` `null`. A template's line breaks read as `\n` in `value`; its raw text is `source.slice(start, end)`, with `\r\n` and `\r` as `\n`.
+`value` is `null` for an escape acorn rejects in a module,
+such as `"\1"`, or one that leaves a tagged template's `cooked` `null`.
+A template's line breaks read as `\n` in `value`;
+its raw text is `source.slice(start, end)`,
+with `\r\n` and `\r` as `\n`.
 
 ### Smaller bundles: `svelte-ast/core` and `svelte-ast/module`
 
-`createParser(support?)` from `svelte-ast/core` returns `parse`, `parseModule` and `parseImportsExports` without the TypeScript parser and the table of HTML's named character references, which most tools can do without. `createSectionsParser(support?)`, from the same entry, returns `parseSections` the same way; it's separate so that a bundle with only `createParser` doesn't carry the lexer. `createModuleParser(support?)` from `svelte-ast/module` returns `parseModule` and `parseImportsExports` without the template parser either, for tools that read `.js` and `.ts` files but never components, such as a bundler plugin following a module graph. Pass back the parts you need; with them, the parsers are the same as `svelte-ast`'s.
+`createParser(support?)`
+from `svelte-ast/core` returns `parse`,
+`parseModule` and `parseImportsExports` without the TypeScript parser
+and the table of HTML's named character references,
+which most tools can do without.
+`createSectionsParser(support?)`, from the same entry,
+returns `parseSections` the same way;
+it's separate so that a bundle with only `createParser` doesn't carry
+the lexer.
+`createModuleParser(support?)`
+from `svelte-ast/module` returns `parseModule` and `parseImportsExports`
+without the template parser either, for tools that read `.js`
+and `.ts` files but never components,
+such as a bundler plugin following a module graph.
+Pass back the parts you need; with them,
+the parsers are the same as `svelte-ast`'s.
 
 ```ts
 import { createParser, createSectionsParser } from "svelte-ast/core";
@@ -300,34 +498,101 @@ const { parseSections } = createSectionsParser({ typescript });
 | `typescript` from `svelte-ast/typescript` | A component with `<script lang="ts">`, or `typescript: true`, throws an `Error`, not a `ParseError`: a missing import, not a syntax error, and never a JavaScript AST of TypeScript |
 | `entities` from `svelte-ast/entities` (`createParser` and `createSectionsParser` only) | Numeric references, such as `&#169;`, and `&amp;`, `&apos;`, `&gt;`, `&lt;` and `&quot;` are decoded, but other names, such as `&copy;`, are left as written, so `Text.data` differs from svelte's where the source uses them |
 
-Both also export `ParseError`, the same class as `svelte-ast`'s, and the node types.
+Both also export `ParseError`, the same class as `svelte-ast`'s,
+and the node types.
 
 ### `isValidType(text, options?) => boolean`
 
-Whether `text` is exactly one TypeScript type, such as a JSDoc `{"sm" | "lg"}` a tool is about to copy into a `.d.ts`. The text is parsed as a type on its own, not wrapped in a statement, so a `;`, a line break or a `}` in it can't end the type and smuggle in a statement: `string; let x = 1` and `{ a: string } }` are `false`. Whitespace and comments around the type are allowed. Results aren't cached.
+Whether `text` is exactly one TypeScript type,
+such as a JSDoc `{"sm" | "lg"}` a tool is about to copy into a `.d.ts`.
+The text is parsed as a type on its own, not wrapped in a statement,
+so a `;`, a line break or a `}` in it can't end the type
+and smuggle in a statement: `string; let x = 1` and `{ a: string } }`
+are `false`.
+Whitespace and comments around the type are allowed.
+Results aren't cached.
 
-A `//` comment runs to the end of the line, so `string // the size` is a valid type but breaks `CustomEvent<${text}>`. Pass `inline: true` when the text goes before more code on the same line: it's then also `false` unless every `//` comment in it ends with a line break.
+A `//` comment runs to the end of the line,
+so `string // the size` is a valid type
+but breaks `CustomEvent<${text}>`.
+Pass `inline: true` when the text goes before more code on the same
+line: it's then also `false` unless every `//` comment in it ends with a
+line break.
 
 ### `isRunesMode(source) => boolean`
 
-Whether svelte compiles the component in runes mode, as `compile(source).metadata.runes` says: by `<svelte:options runes>` if it has one, otherwise by whether it uses a rune, such as `$state` or `$props`, or `await` outside a function in its instance script or markup. A `$state` that subscribes to a store named `state`, or that a function declares, isn't a rune, as in svelte. E.g. to track a migration to Svelte 5, or to pick the rules a linter applies.
+Whether svelte compiles the component in runes mode,
+as `compile(source).metadata.runes` says:
+by `<svelte:options runes>` if it has one,
+otherwise by whether it uses a rune, such as `$state` or `$props`,
+or `await` outside a function in its instance script or markup.
+A `$state` that subscribes to a store named `state`,
+or that a function declares, isn't a rune, as in svelte.
+E.g. to track a migration to Svelte 5,
+or to pick the rules a linter applies.
 
-Most components are decided without parsing: `<svelte:options>` is read with `lexComponent`, a component without a rune's name or `await` isn't in runes mode, and one whose scripts call a rune in a way that can't be a declaration, a method, a type or a store is. The rest is parsed, without the markup unless a rune's name or `await` is in it, and a syntax error there throws a `ParseError`. On 12,808 components from other Svelte projects, it takes a twelfth of the time parsing them does.
+Most components are decided without parsing:
+`<svelte:options>` is read with `lexComponent`,
+a component without a rune's name or `await` isn't in runes mode,
+and one whose scripts call a rune in a way that can't be a declaration,
+a method, a type or a store is.
+The rest is parsed, without the markup unless a rune's name
+or `await` is in it, and a syntax error there throws a `ParseError`.
+On 12,808 components from other Svelte projects,
+it takes a twelfth of the time parsing them does.
 
 ### `walk(node, visitor, keys?) => void`
 
-Visits `node` and every node under it, depth-first and in source order, calling `visitor.enter(node, parent, key, index)` before a node's children and `visitor.leave(node, parent, key, index)` after them. `parent[key]` is the node, or `parent[key][index]` when the field is an array; all three are `null` for the node you pass. Checking `node.type` narrows `node`.
+Visits `node` and every node under it, depth-first and in source order,
+calling `visitor.enter(node, parent, key, index)` before a node's
+children and `visitor.leave(node, parent, key, index)` after them.
+`parent[key]` is the node, or `parent[key][index]`
+when the field is an array; all three are `null` for the node you pass.
+Checking `node.type` narrows `node`.
 
 What `enter` and `leave` return controls the walk:
 
-- **`SKIP`** from `enter` skips the node's children. `leave` is still called, so a stack you push in `enter` and pop in `leave` stays balanced.
-- **`STOP`** from `enter` or `leave` ends the walk there, without `leave` on the node's ancestors, e.g. to find the first use of a rune.
-- **A node** from `enter` replaces this one: `walk` writes it to `parent[key]` (or `parent[key][index]`), then enters it and visits its children instead, and `leave` gets the replacement. `return node.expression` on each `TSAsExpression` strips `a as B as C` down to `a`. The node you pass to `walk` can't be replaced.
-- **Anything else**, `false` included, is ignored, so `enter: (node) => node.type === "Component" && names.add(node.name)` still visits every node.
+- **`SKIP`** from `enter` skips the node's children.
+  `leave` is still called, so a stack you push in `enter`
+  and pop in `leave` stays balanced.
+- **`STOP`** from `enter` or `leave` ends the walk there,
+  without `leave` on the node's ancestors,
+  e.g. to find the first use of a rune.
+- **A node** from `enter` replaces this one:
+  `walk` writes it to `parent[key]` (or `parent[key][index]`),
+  then enters it and visits its children instead,
+  and `leave` gets the replacement.
+  `return node.expression` on each `TSAsExpression` strips `a as B as C`
+  down to `a`.
+  The node you pass to `walk` can't be replaced.
+- **Anything else**, `false` included, is ignored,
+  so
+  `enter: (node) => node.type === "Component" && names.add(node.name)`
+  still visits every node.
 
-It works on any node the parsers return: a `Root`, a `Fragment`, an expression, a `Program`, a `<style>`'s rules. It never descends into `loc`, comments or strings, and throws on a node type it doesn't know. A component's sections are visited in scope order, `module`, `instance`, `fragment`, then `css`, and a template literal's `quasis` before its `expressions`. `<svelte:options>`'s attributes aren't visited; read them from `ast.options?.attributes`. In `import { a }` and `export { a }`, one `Identifier` is both names, so it's visited twice.
+It works on any node the parsers return: a `Root`, a `Fragment`,
+an expression, a `Program`, a `<style>`'s rules.
+It never descends into `loc`, comments or strings,
+and throws on a node type it doesn't know.
+A component's sections are visited in scope order, `module`, `instance`,
+`fragment`, then `css`, and a template literal's `quasis` before its
+`expressions`.
+`<svelte:options>`'s attributes aren't visited;
+read them from `ast.options?.attributes`.
+In `import { a }` and `export { a }`, one `Identifier` is both names,
+so it's visited twice.
 
-`visitorKeys` is the table `walk` reads: the fields of each node type that hold child nodes, in source order, e.g. `visitorKeys.IfBlock` is `["test", "consequent", "alternate"]`. Pass another table as `keys` to visit other fields; a node whose type it has no entry for throws. `markupVisitorKeys` visits only the markup: `Root`'s `fragment`, elements' attributes and fragments, attribute values and blocks' fragments, but no script, style or expression. For a query about the markup, such as the components a file renders or the classes it uses, it's 4.8× faster on the benchmark corpus than walking everything:
+`visitorKeys` is the table `walk` reads:
+the fields of each node type that hold child nodes, in source order,
+e.g. `visitorKeys.IfBlock` is `["test", "consequent", "alternate"]`.
+Pass another table as `keys` to visit other fields;
+a node whose type it has no entry for throws.
+`markupVisitorKeys` visits only the markup: `Root`'s `fragment`,
+elements' attributes and fragments, attribute values
+and blocks' fragments, but no script, style or expression.
+For a query about the markup, such as the components a file renders
+or the classes it uses, it's 4.8× faster on the benchmark corpus than
+walking everything:
 
 ```ts
 import { markupVisitorKeys, walk } from "svelte-ast";
@@ -343,15 +608,50 @@ walk(
 );
 ```
 
-`valueVisitorKeys` leaves out TypeScript's types: no type annotation, type parameter or type argument, no `implements`, and no type in `as` or `satisfies`. It reaches every value and binding, so an `Identifier` it reaches is never a type's name, and a tool that rewrites values can't fold `size` in `type S = typeof size` or `let a: typeof size`. It still enters a declaration that holds only types, such as `type`, `interface` or an index signature, but not its children, and of `declare function f(): void` it visits only the name. The TypeScript nodes whose children it visits hold values: `as`, `satisfies`, `<T>a`, `a!` and `a<T>` their expression, an enum its members, a namespace its body, `import a = b` and `export =` their value, and a parameter property its parameter. Walking with it takes about as long as walking everything.
+`valueVisitorKeys` leaves out TypeScript's types: no type annotation,
+type parameter or type argument, no `implements`,
+and no type in `as` or `satisfies`.
+It reaches every value and binding, so an `Identifier` it reaches is
+never a type's name, and a tool that rewrites values can't fold `size`
+in `type S = typeof size` or `let a: typeof size`.
+It still enters a declaration that holds only types, such as `type`,
+`interface` or an index signature, but not its children,
+and of `declare function f(): void` it visits only the name.
+The TypeScript nodes whose children it visits hold values:
+`as`, `satisfies`, `<T>a`, `a!`
+and `a<T>` their expression, an enum its members, a namespace its body,
+`import a = b` and `export =` their value,
+and a parameter property its parameter.
+Walking with it takes about as long as walking everything.
 
-`skipTypeWrappers(node)` gives the value inside those wrappers: `a` for `a as T`, `a satisfies T`, `<T>a`, `a!`, `a<T>` and any nesting of them, and `node` itself for anything else, for code that reads values, such as an evaluator deciding whether `size as Size` is a constant.
+`skipTypeWrappers(node)` gives the value inside those wrappers:
+`a` for `a as T`, `a satisfies T`, `<T>a`, `a!`,
+`a<T>` and any nesting of them, and `node` itself for anything else,
+for code that reads values, such as an evaluator deciding whether
+`size as Size` is a constant.
 
-`svelte-ast/walk` exports `walk`, `SKIP`, `STOP`, `visitorKeys`, `markupVisitorKeys`, `valueVisitorKeys`, `skipTypeWrappers`, `children`, `forEachChild`, `isReference`, `extractIdentifiers`, `createLocator`, `locate` and the types without loading a parser, for code that walks ASTs from elsewhere, such as a cache.
+`svelte-ast/walk` exports `walk`, `SKIP`, `STOP`, `visitorKeys`,
+`markupVisitorKeys`, `valueVisitorKeys`, `skipTypeWrappers`, `children`,
+`forEachChild`, `isReference`, `extractIdentifiers`, `createLocator`,
+`locate` and the types without loading a parser,
+for code that walks ASTs from elsewhere, such as a cache.
 
-### `children(node, keys?) => Node[]` and `forEachChild(node, callback, keys?) => void`
+### `children()` and `forEachChild()`
 
-The child nodes `walk` would visit next, in source order, for a traversal of your own, such as one that evaluates expressions and decides per node what to visit. `forEachChild(node, (child, key, index) => ...)` calls back with each child, the field that holds it, and its index when the field is an array, and allocates nothing. `children(node)` returns an array that it makes on the first call for each node and returns again after, so a tool that walks the same tree many times lists each node's children once. ASTs don't change after `parse`, so the cache stays right unless you change one, for instance by replacing a node with `walk`; don't change the array. Both take `keys` as `walk` does and throw on a node type it has no entry for.
+The child nodes `walk` would visit next, in source order,
+for a traversal of your own, such as one that evaluates expressions
+and decides per node what to visit.
+`forEachChild(node, (child, key, index) => ...)`
+calls back with each child, the field that holds it,
+and its index when the field is an array, and allocates nothing.
+`children(node)` returns an array that it makes on the first call for
+each node and returns again after, so a tool that walks the same tree
+many times lists each node's children once.
+ASTs don't change after `parse`, so the cache stays right
+unless you change one, for instance by replacing a node with `walk`;
+don't change the array.
+Both take `keys` as `walk` does and throw on a node type it has no entry
+for.
 
 ```ts
 import { forEachChild, valueVisitorKeys } from "svelte-ast/walk";
@@ -364,9 +664,27 @@ function visit(node) {
 
 ### `isReference(node, parent) => boolean`
 
-Whether `node` is an `Identifier` that names a variable, function, class, import or other binding, where it's declared or where it's used, given the `parent` `walk` passes. It's the check svelte's analyzer makes, from [`is-reference`](https://github.com/Rich-Harris/is-reference): `false` for a property or method name (`b` in `a.b`, `{ b: a }` and `class { b() {} }`, unless computed), the renamed side of an import or export (`b` in `import { b as a }` and `export { a as b }`), and labels. Unlike `is-reference`, it's also `false` for `import.meta` and `new.target`, an import attribute's key, and `b` in `export * as b from`.
+Whether `node` is an `Identifier` that names a variable, function,
+class, import or other binding, where it's declared or where it's used,
+given the `parent` `walk` passes.
+It's the check svelte's analyzer makes,
+from [`is-reference`](https://github.com/Rich-Harris/is-reference):
+`false` for a property or method name
+(`b` in `a.b`, `{ b: a }` and `class { b() {} }`, unless computed),
+the renamed side of an import or export
+(`b` in `import { b as a }` and `export { a as b }`), and labels.
+Unlike `is-reference`, it's also `false` for `import.meta`
+and `new.target`, an import attribute's key,
+and `b` in `export * as b from`.
 
-In TypeScript, a name in a type isn't a reference (`B` in `let a: B`, interface and type alias names), but a value is: the expression of `as`, `satisfies`, `<T>a`, `a!`, `a<T>` and `export =`, an enum's name and member initializers, a parameter property (`a` in `constructor(private a)`), and both sides of `import a = b`. Names of namespaces and of functions without a body (overloads, `declare function`) aren't references.
+In TypeScript, a name in a type isn't a reference
+(`B` in `let a: B`, interface and type alias names), but a value is:
+the expression of `as`, `satisfies`, `<T>a`, `a!`,
+`a<T>` and `export =`, an enum's name and member initializers,
+a parameter property (`a` in `constructor(private a)`),
+and both sides of `import a = b`.
+Names of namespaces and of functions without a body
+(overloads, `declare function`) aren't references.
 
 ```ts
 import { isReference, parseModule, walk } from "svelte-ast";
@@ -382,7 +700,17 @@ used; // Set { "a", "b", "e" }
 
 ### `extractIdentifiers(pattern) => Identifier[]`
 
-The `Identifier` nodes a pattern binds, in source order, as svelte's `extract_identifiers` returns them: `a`, `c`, `d`, `e` and `f` in `let { a, b: [c, ...d], e = 1, ...f } = x`. Property keys, defaults and type annotations aren't included, and a member expression binds nothing, so `[a.b, c] = x` yields only `c`. It takes any binding or assignment target: a declarator's `id`, a function's params, including a parameter property, a catch clause's `param`, an each block's `context`, a snippet's `parameters`, or an assignment's `left`, where `a!`, `a as T`, `a satisfies T` and `<T>a` yield `a`.
+The `Identifier` nodes a pattern binds, in source order,
+as svelte's `extract_identifiers` returns them: `a`, `c`, `d`,
+`e` and `f` in `let { a, b: [c, ...d], e = 1, ...f } = x`.
+Property keys, defaults and type annotations aren't included,
+and a member expression binds nothing,
+so `[a.b, c] = x` yields only `c`.
+It takes any binding or assignment target: a declarator's `id`,
+a function's params, including a parameter property,
+a catch clause's `param`, an each block's `context`,
+a snippet's `parameters`, or an assignment's `left`, where `a!`,
+`a as T`, `a satisfies T` and `<T>a` yield `a`.
 
 ```ts
 import { extractIdentifiers, parseModule } from "svelte-ast";
@@ -395,7 +723,17 @@ if (declaration.type === "VariableDeclaration") {
 
 ### `analyzeScopes(ast, options?) => Scopes`
 
-Finds the scopes of a component, its scripts and markup together, or of a module: which declaration each name refers to, and where each binding is read, written or subscribed to. It resolves names as svelte's analyzer does, which `tests/scope.test.ts` checks on the corpus: on 12,548 components from the corpus, svelte's tests and the Svelte projects listed under parity, they agree on all 208,797 names they both resolve, but for a class expression's name inside its body, a snippet's own name and a `var` declared twice, where svelte-ast follows JavaScript.
+Finds the scopes of a component, its scripts and markup together,
+or of a module: which declaration each name refers to,
+and where each binding is read, written or subscribed to.
+It resolves names as svelte's analyzer does,
+which `tests/scope.test.ts` checks on the corpus:
+on 12,548 components from the corpus,
+svelte's tests and the Svelte projects listed under parity,
+they agree on all 208,797 names they both resolve,
+but for a class expression's name inside its body,
+a snippet's own name and a `var` declared twice,
+where svelte-ast follows JavaScript.
 
 ```ts
 import { parse } from "svelte-ast";
@@ -418,32 +756,106 @@ size?.references.some((reference) => reference.writes || reference.mutates); // 
 
 It returns:
 
-- **`module`** and **`instance`**, the scopes of `<script module>` and `<script>` (one scope, for a module). A `Scope` has the `node` that makes it, its `parent`, its `declarations` by name, and `get(name)`, the binding a name refers to there, or `null` for a global. With `types: true`, its `types` holds its `type`, `interface` and type parameter bindings, and `getType(name)` is the binding a name refers to in a type.
-- **`scopeOf(node)`**, the scope a node is in; `null` in a type, the `<style>` or another AST. The first call walks the AST again to record every node's scope, so a tool that only resolves names doesn't keep a map of every node.
-- **`bindingOf(identifier)`**, the binding an `Identifier` declares or refers to; `null` for a global, a property key or a name in a type.
-- **`referenceOf(identifier)`**, the `Reference` an `Identifier` is, to tell a read from a write or a store subscription; `null` for one that declares a binding or isn't a reference.
-- **`declaredIn(node)`**, the bindings of the scope a node makes: a function's parameters (its body's declarations are its body's), a block's or an each block's declarations, a snippet's parameters, or an element's `let:` names.
+- **`module`** and **`instance`**, the scopes of `<script module>`
+  and `<script>` (one scope, for a module).
+  A `Scope` has the `node` that makes it, its `parent`,
+  its `declarations` by name, and `get(name)`,
+  the binding a name refers to there, or `null` for a global.
+  With `types: true`, its `types` holds its `type`,
+  `interface` and type parameter bindings,
+  and `getType(name)` is the binding a name refers to in a type.
+- **`scopeOf(node)`**, the scope a node is in; `null` in a type,
+  the `<style>` or another AST.
+  The first call walks the AST again to record every node's scope,
+  so a tool that only resolves names doesn't keep a map of every node.
+- **`bindingOf(identifier)`**, the binding an `Identifier` declares
+  or refers to; `null` for a global, a property key or a name in a type.
+- **`referenceOf(identifier)`**, the `Reference` an `Identifier` is,
+  to tell a read from a write or a store subscription;
+  `null` for one that declares a binding or isn't a reference.
+- **`declaredIn(node)`**, the bindings of the scope a node makes:
+  a function's parameters (its body's declarations are its body's),
+  a block's or an each block's declarations, a snippet's parameters,
+  or an element's `let:` names.
 
-A `Binding` has its `name`, its `kind`, the `Identifier` that declares it as `node` (`null` for an each block's index and for `let:x` without a value), the `declaration` that holds it, its `scope` and its `references`. `initial` is what it starts as, as svelte's analyzer has it: an initializer, or for a prop destructured from `$props()`, its default without `$bindable`. `rune` is the rune its initializer calls, such as `"$state"`, `"$derived"` or `"$props"`, unless a binding or a store shadows it, and `prop` the name a parent passes a prop as: `"class"` for `klass` in `let { class: klass } = $props()` or `export { klass as class }`, `"size"` for `export let size`.
+A `Binding` has its `name`, its `kind`,
+the `Identifier` that declares it as `node`
+(`null` for an each block's index and for `let:x` without a value),
+the `declaration` that holds it, its `scope` and its `references`.
+`initial` is what it starts as, as svelte's analyzer has it:
+an initializer, or for a prop destructured from `$props()`,
+its default without `$bindable`.
+`rune` is the rune its initializer calls, such as `"$state"`,
+`"$derived"` or `"$props"`, unless a binding or a store shadows it,
+and `prop` the name a parent passes a prop as:
+`"class"` for `klass` in `let { class: klass } = $props()`
+or `export { klass as class }`, `"size"` for `export let size`.
 
-A `Reference` has its `Identifier` as `node`, its `parent`, its `scope` and its `binding`, and says whether it `reads` the value (all but a plain `=`'s target), `writes` it (`=`, `+=`, `++`, `bind:`, `for (a of b)`), or `mutates` it (`a` in `a.b = c` and `bind:value={a.b}`), and whether it's a `store` subscription. Names the markup holds as strings, such as `Foo` in `<Foo.Bar>`, `a` in `use:a`, `transition:a` and `animate:a`, and `color` in `style:color`, get a new `Identifier` with the name's `start` and `end`.
+A `Reference` has its `Identifier` as `node`, its `parent`,
+its `scope` and its `binding`, and says whether it `reads` the value
+(all but a plain `=`'s target), `writes` it
+(`=`, `+=`, `++`, `bind:`, `for (a of b)`),
+or `mutates` it (`a` in `a.b = c` and `bind:value={a.b}`),
+and whether it's a `store` subscription.
+Names the markup holds as strings, such as `Foo` in `<Foo.Bar>`,
+`a` in `use:a`, `transition:a` and `animate:a`,
+and `color` in `style:color`, get a new `Identifier` with the name's
+`start` and `end`.
 
 The markup's scopes are svelte's:
 
-- `{#each items as item, i (key)}` declares `item` and `i` for the key and the body, but not for `{:else}`.
-- A snippet's name is declared where the snippet is, and its parameters inside it. A top-level snippet is in the markup's scope, so a `<script>` that uses one refers to a global, as in svelte's analyzer.
-- `{@const}` declares a name for its whole block or element, `{:then value}` and `{:catch error}` for their branch.
-- `let:` declares a name for the element's attributes and children, or for a component's default slot; children with a `slot` attribute get their own scope. `let:a={b}` declares `b`, `let:a` declares `a`.
-- `$count`, without a declaration of `$count`, is a subscription to `count`, unless it's a rune: `$state` refers to a store `state` only if `state` isn't itself made by a rune.
-- `$: a = b` declares `a` if nothing else does, and writes it: the assignment is one of its references.
+- `{#each items as item, i (key)}` declares `item` and `i` for the key
+  and the body, but not for `{:else}`.
+- A snippet's name is declared where the snippet is,
+  and its parameters inside it.
+  A top-level snippet is in the markup's scope,
+  so a `<script>` that uses one refers to a global,
+  as in svelte's analyzer.
+- `{@const}` declares a name for its whole block or element,
+  `{:then value}` and `{:catch error}` for their branch.
+- `let:` declares a name for the element's attributes and children,
+  or for a component's default slot; children with a `slot` attribute
+  get their own scope.
+  `let:a={b}` declares `b`, `let:a` declares `a`.
+- `$count`, without a declaration of `$count`,
+  is a subscription to `count`, unless it's a rune:
+  `$state` refers to a store `state` only if `state` isn't itself made
+  by a rune.
+- `$: a = b` declares `a` if nothing else does, and writes it:
+  the assignment is one of its references.
 
-Names in TypeScript's types aren't references, and `type` and `interface` declare nothing; it skips them with `valueVisitorKeys`. Enums, enum members and namespaces are declared. It doesn't change the AST, and takes less than half as long as parsing it.
+Names in TypeScript's types aren't references,
+and `type` and `interface` declare nothing;
+it skips them with `valueVisitorKeys`.
+Enums, enum members and namespaces are declared.
+It doesn't change the AST, and takes less than half as long as parsing
+it.
 
 | Option | Default | Description |
 |:---|:---|:---|
 | `types` | `false` | Resolve the names in types too, for a tool that asks which declarations some code uses, such as one that copies a statement with the imports it needs. |
 
-With `types: true`, `type` and `interface` declare bindings of those kinds, and a type parameter or `infer U` one of kind `"type-param"`, in a scope's `types`, apart from its values, so `type A` and `const A` are two bindings. A name in a type is a `Reference` with `type: true` that neither reads, writes nor mutates: `A` in `let a: A`, `a` in `typeof a`, `I` in `implements I` and `extends I`, `N` in `N.T`, and the local name in `export type { A }`. A name in a type refers to a type, an import, a class or an enum; `typeof a` to a value; `N` in `N.T` to a namespace, an enum or an import, so `import type { A }` and `import { type A }` get the references. Property and method names in type literals and interfaces aren't references, but for a computed key's value. Type parameters are in scope for their function, class, method, type alias, interface or function type, `infer U` for its conditional type's true branch, and the parameters of a function type or signature are bindings of kind `"param"`, for `typeof x` and `x is T`. `<script generics="...">`'s names aren't declared. The value references are those it finds without `types`.
+With `types: true`, `type` and `interface` declare bindings of those
+kinds, and a type parameter or `infer U` one of kind `"type-param"`,
+in a scope's `types`, apart from its values,
+so `type A` and `const A` are two bindings.
+A name in a type is a `Reference` with `type: true` that neither reads,
+writes nor mutates: `A` in `let a: A`, `a` in `typeof a`,
+`I` in `implements I` and `extends I`, `N` in `N.T`,
+and the local name in `export type { A }`.
+A name in a type refers to a type, an import, a class or an enum;
+`typeof a` to a value; `N` in `N.T` to a namespace,
+an enum or an import, so `import type { A }` and `import { type A }` get
+the references.
+Property and method names in type literals and interfaces aren't
+references, but for a computed key's value.
+Type parameters are in scope for their function, class, method,
+type alias, interface or function type,
+`infer U` for its conditional type's true branch,
+and the parameters of a function type or signature are bindings of kind
+`"param"`, for `typeof x` and `x is T`.
+`<script generics="...">`'s names aren't declared.
+The value references are those it finds without `types`.
 
 ```ts
 const ast = parse(`<script lang="ts">
@@ -456,7 +868,15 @@ instance.get("DataTableHeader")?.references[0]?.type; // true
 
 ### `a11yWarnings(ast, options?) => A11yWarning[]`
 
-From `svelte-ast/a11y`. The `a11y_…` warnings svelte's compiler gives for a component, with the same `code`, `message` and offsets, and without the ones a `<!-- svelte-ignore -->` comment before an element, or one of its ancestors, silences. For a linter that already has the AST: on Carbon's 2,202 components it takes 60 ms, against 735 ms for `compile(source, { generate: false })`. It loads neither acorn nor the parser.
+From `svelte-ast/a11y`.
+The `a11y_…` warnings svelte's compiler gives for a component,
+with the same `code`, `message` and offsets,
+and without the ones a `<!-- svelte-ignore -->` comment before an
+element, or one of its ancestors, silences.
+For a linter that already has the AST:
+on Carbon's 2,202 components it takes 60 ms,
+against 735 ms for `compile(source, { generate: false })`.
+It loads neither acorn nor the parser.
 
 | Option | Default | Description |
 |:---|:---|:---|
@@ -473,11 +893,23 @@ for (const warning of a11yWarnings(parse(source), { runes: isRunesMode(source) }
 }
 ```
 
-The ARIA tables come from svelte's, which read aria-query and axobject-query, generated into the package, so it has no dependencies. On svelte's tests, carbon-components-svelte, bits-ui, shadcn-svelte, skeleton, flowbite-svelte, svelte.dev, immich and SvelteKit, it gives the warnings `compile` gives for all 13,276 components both accept, 899 warnings, and for 13,163 with their `svelte-ignore` comments and common a11y attributes removed, 2,185 warnings.
+The ARIA tables come from svelte's, which read aria-query
+and axobject-query, generated into the package,
+so it has no dependencies.
+On svelte's tests, carbon-components-svelte, bits-ui, shadcn-svelte,
+skeleton, flowbite-svelte, svelte.dev, immich and SvelteKit,
+it gives the warnings `compile` gives for all 13,276 components both
+accept, 899 warnings, and for 13,163 with their `svelte-ignore` comments
+and common a11y attributes removed, 2,185 warnings.
 
 ### `compilerWarnings(ast, options) => CompilerWarning[]`
 
-From `svelte-ast/warnings`. The warnings svelte's compiler gives for a component besides the `a11y_…` ones, with the same `code`, `message` and offsets, and without the ones a `svelte-ignore` comment silences. It loads neither acorn nor the parser. It gives:
+From `svelte-ast/warnings`.
+The warnings svelte's compiler gives for a component besides the
+`a11y_…` ones, with the same `code`, `message` and offsets,
+and without the ones a `svelte-ignore` comment silences.
+It loads neither acorn nor the parser.
+It gives:
 
 | Code | When |
 | --- | --- |
@@ -511,10 +943,18 @@ From `svelte-ast/warnings`. The warnings svelte's compiler gives for a component
 
 Its options:
 
-- `source` (required): the source passed to `parse`. svelte reads it to tell `<div/>` from `<div></div>`, which the AST doesn't.
-- `filename`: svelte's `filename` option. `svelte_self_deprecated` names the self-import after it, or `Self` without one.
-- `customElement`: svelte's `customElement` option. `<svelte:options customElement>` counts without it, except for `options_missing_custom_element`. A custom element gets no `slot_element_deprecated`.
-- `runes`: as for [`a11yWarnings`](#a11ywarningsast-options--a11ywarning).
+- `source` (required): the source passed to `parse`.
+  svelte reads it to tell `<div/>` from `<div></div>`,
+  which the AST doesn't.
+- `filename`: svelte's `filename` option.
+  `svelte_self_deprecated` names the self-import after it,
+  or `Self` without one.
+- `customElement`: svelte's `customElement` option.
+  `<svelte:options customElement>` counts without it,
+  except for `options_missing_custom_element`.
+  A custom element gets no `slot_element_deprecated`.
+- `runes`: as for
+  [`a11yWarnings`](#a11ywarningsast-options--a11ywarning).
 
 ```ts
 import { isRunesMode, parse } from "svelte-ast";
@@ -528,15 +968,64 @@ for (const warning of compilerWarnings(ast, { source, filename, runes: isRunesMo
 }
 ```
 
-svelte gives some warnings as it parses: `element_implicitly_closed` and `svelte_element_invalid_this`. `parse` records them with the AST it returns, so pass that AST: a copy, or an AST from svelte's `parse`, gets neither. svelte gives these and the `script_…`, `options_…` and `store_rune_conflict` warnings outside its walk of the markup, so a `svelte-ignore` comment silences none of them. For `non_reactive_update` and `export_let_unused`, only a comment before the declaration counts.
+svelte gives some warnings as it parses:
+`element_implicitly_closed` and `svelte_element_invalid_this`.
+`parse` records them with the AST it returns, so pass that AST:
+a copy, or an AST from svelte's `parse`, gets neither.
+svelte gives these and the `script_…`,
+`options_…` and `store_rune_conflict` warnings outside its walk of the
+markup, so a `svelte-ignore` comment silences none of them.
+For `non_reactive_update` and `export_let_unused`,
+only a comment before the declaration counts.
 
-svelte checks every string for `bidirectional_control_characters` with one regular expression with the `g` flag. After a match, its next check starts part way into the next string, so svelte can miss one, and the miss carries over to the next component it compiles. svelte-ast follows this within a component, but starts each component afresh, as svelte does for the first one it compiles. svelte throws on an `unknown_code` or `legacy_code` in a comment before a `<script>`; svelte-ast gives no warning for it.
+svelte checks every string for `bidirectional_control_characters` with
+one regular expression with the `g` flag.
+After a match, its next check starts part way into the next string,
+so svelte can miss one, and the miss carries over to the next component
+it compiles.
+svelte-ast follows this within a component,
+but starts each component afresh, as svelte does for the first one it
+compiles.
+svelte throws on an `unknown_code` or `legacy_code` in a comment before
+a `<script>`; svelte-ast gives no warning for it.
 
-It's a port of svelte 5's analysis, so it gives what svelte 5 gives. It builds scopes only for a component that needs them, and shares them between checks: a check of the scripts' syntax and the markup's text first rules out most components. On the 8,834 components of the projects below that have the AST, it takes 193 ms, against 60 ms without the scope warnings. `compile(source, { generate: false })` takes 2,693 ms on the 8,735 of them it accepts. For all the warnings, on the same projects, svelte's tests and the corpus, it gives the warnings `compile` gives for all 13,097 components both accept, 1,344 warnings. For the warnings besides `css_unused_selector`, on the same projects, svelte's tests, carbon-components-svelte and the corpus, it gives the warnings `compile` gives for all 15,090 components both accept with their `svelte-ignore` comments removed, 602 warnings, and for all 12,119 that compile with `<svelte:options runes>` added, 1,295 warnings. On svelte's tests, carbon-components-svelte, bits-ui, shadcn-svelte, skeleton, flowbite-svelte, svelte.dev, immich, SvelteKit, melt-ui, layerchart and paneforge, it gives the warnings `compile` gives for all 14,208 components both accept, 1,516 warnings with the static `class` and `id` attributes removed from the markup. A differential fuzzer (`scripts/fuzz-css.ts`) found no difference on 166,000 more components.
+It's a port of svelte 5's analysis, so it gives what svelte 5 gives.
+It builds scopes only for a component that needs them,
+and shares them between checks: a check of the scripts' syntax
+and the markup's text first rules out most components.
+On the 8,834 components of the projects below that have the AST,
+it takes 193 ms, against 60 ms without the scope warnings.
+`compile(source, { generate: false })` takes 2,693 ms on the 8,735 of
+them it accepts.
+For all the warnings, on the same projects,
+svelte's tests and the corpus, it gives the warnings `compile` gives for
+all 13,097 components both accept, 1,344 warnings.
+For the warnings besides `css_unused_selector`, on the same projects,
+svelte's tests, carbon-components-svelte and the corpus,
+it gives the warnings `compile` gives for all 15,090 components both
+accept with their `svelte-ignore` comments removed, 602 warnings,
+and for all 12,119 that compile with `<svelte:options runes>` added,
+1,295 warnings.
+On svelte's tests, carbon-components-svelte, bits-ui, shadcn-svelte,
+skeleton, flowbite-svelte, svelte.dev, immich, SvelteKit, melt-ui,
+layerchart and paneforge, it gives the warnings `compile` gives for all
+14,208 components both accept, 1,516 warnings with the static `class`
+and `id` attributes removed from the markup.
+A differential fuzzer (`scripts/fuzz-css.ts`) found no difference on
+166,000 more components.
 
 ### `createLocator(source) => (offset) => Position`
 
-A function from an offset to its `{ line, column }`, line from 1 and column from 0, as `loc: true` gives them: for a tool that parses without `loc`, which is faster, and needs lines only for what it reports. Lines are found on the first call, and each lookup starts its search at the line found last, so lookups in source order are fastest. Lines end at `\n`, as in the markup's `loc` and `ParseError`; acorn's `loc` in scripts and modules also ends them at a lone `\r`, U+2028 and U+2029. `parse` drops a leading byte order mark, so pass the source without one.
+A function from an offset to its `{ line, column }`,
+line from 1 and column from 0, as `loc: true` gives them:
+for a tool that parses without `loc`, which is faster,
+and needs lines only for what it reports.
+Lines are found on the first call, and each lookup starts its search at
+the line found last, so lookups in source order are fastest.
+Lines end at `\n`, as in the markup's `loc` and `ParseError`;
+acorn's `loc` in scripts and modules also ends them at a lone `\r`,
+U+2028 and U+2029.
+`parse` drops a leading byte order mark, so pass the source without one.
 
 ```ts
 import { createLocator, parse, walk } from "svelte-ast";
@@ -549,7 +1038,10 @@ walk(parse(source), {
 });
 ```
 
-`locate(source, offset)` gives the same `{ line, column }` without keeping a locator: it keeps the lines of the last 64 sources it was called with, so a tool that reports nodes from many files, in any order, looks lines up once per file rather than scanning each from the start.
+`locate(source, offset)` gives the same `{ line, column }` without
+keeping a locator: it keeps the lines of the last 64 sources it was
+called with, so a tool that reports nodes from many files, in any order,
+looks lines up once per file rather than scanning each from the start.
 
 ```ts
 import { locate } from "svelte-ast";
@@ -559,6 +1051,26 @@ import { locate } from "svelte-ast";
 
 ### Types
 
-`AST` is svelte's `AST` namespace (`AST.Root`, `AST.RegularElement`, `AST.CSS.Rule`, ...), corrected to match what the parser returns: `name_loc` and a comment's `loc` are optional, `Root.instance`/`module` are absent rather than `null` when there's no such `<script>`, `Root.js` is declared, and every directive has `modifiers`. Each function's options and results are exported too, e.g. `ParseOptions` and `LexedStatement`.
+`AST` is svelte's `AST` namespace
+(`AST.Root`, `AST.RegularElement`, `AST.CSS.Rule`, ...),
+corrected to match what the parser returns:
+`name_loc` and a comment's `loc` are optional,
+`Root.instance`/`module` are absent rather than `null`
+when there's no such `<script>`, `Root.js` is declared,
+and every directive has `modifiers`.
+Each function's options and results are exported too,
+e.g. `ParseOptions` and `LexedStatement`.
 
-The script's node types are exported as well (`Program`, `Node`, `Statement`, `Expression`, `Identifier`, ...), so you don't need a separate types package. They include `start`/`end` on every node, and the TypeScript nodes (`TSInterfaceDeclaration`, `TSTypeAnnotation`, ...; `TSNode` is their union) and fields (`typeAnnotation`, `typeParameters`, `returnType`, `importKind`, ...). The TypeScript nodes are in the `Statement`, `Declaration` and `Expression` unions, so checking `node.type` narrows to them. Where the grammar only allows a string, such as an import's `source`, the type is `StringLiteral`, a `Literal` whose `value` is a `string`.
+The script's node types are exported as well
+(`Program`, `Node`, `Statement`, `Expression`, `Identifier`, ...),
+so you don't need a separate types package.
+They include `start`/`end` on every node,
+and the TypeScript nodes
+(`TSInterfaceDeclaration`, `TSTypeAnnotation`, ...; `TSNode` is their
+union) and fields
+(`typeAnnotation`, `typeParameters`, `returnType`, `importKind`, ...).
+The TypeScript nodes are in the `Statement`,
+`Declaration` and `Expression` unions,
+so checking `node.type` narrows to them.
+Where the grammar only allows a string, such as an import's `source`,
+the type is `StringLiteral`, a `Literal` whose `value` is a `string`.

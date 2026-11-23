@@ -47,9 +47,15 @@ export interface ParserSupport {
 export interface Parser {
   /** `parse` from `svelte-ast`, with only what the parser was created with. */
   parse(source: string, options?: ParseOptions): AST.Root;
-  /** `parseModule` from `svelte-ast`, with only what the parser was created with. */
+  /**
+   * `parseModule` from `svelte-ast`, with only what the parser was created
+   * with.
+   */
   parseModule(source: string, options?: ParseModuleOptions): Program;
-  /** `parseImportsExports` from `svelte-ast`, with only what the parser was created with. */
+  /**
+   * `parseImportsExports` from `svelte-ast`, with only what the parser was
+   * created with.
+   */
   parseImportsExports(
     source: string,
     options?: ParseImportsExportsOptions,
@@ -84,14 +90,17 @@ export function createParser(support: ParserSupport = {}): Parser {
 
 /** The parser {@link createSectionsParser} returns. */
 export interface SectionsParser {
-  /** `parseSections` from `svelte-ast`, with only what the parser was created with. */
+  /**
+   * `parseSections` from `svelte-ast`, with only what the parser was created
+   * with.
+   */
   parseSections(source: string, options?: ParseOptions): AST.Root;
 }
 
 /**
- * Creates `parseSections` that bundles only what's passed in, as
- * {@link createParser} creates `parse`. It's a function of its own so that
- * a bundle with only `createParser` doesn't carry the lexer `parseSections`
+ * Creates `parseSections` that bundles only what's passed in, as {@link
+ * createParser} creates `parse`. It's a function of its own so that a
+ * bundle with only `createParser` doesn't carry the lexer `parseSections`
  * uses. With both parts, it's the same as `svelte-ast`'s.
  *
  * ```ts

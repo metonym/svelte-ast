@@ -85,11 +85,17 @@ import { ignoreCodes } from "./svelte-ignore";
 import type { AST } from "./types/svelte-ast";
 import { forEachChild, markupVisitorKeys } from "./walk";
 
-/** A warning svelte's compiler would give for the component's accessibility. */
+/**
+ * A warning svelte's compiler would give for the component's
+ * accessibility.
+ */
 export interface A11yWarning {
   /** svelte's code, such as `"a11y_missing_attribute"`. */
   code: string;
-  /** svelte's message: the reason, a line break, and the link to the warning's docs. */
+  /**
+   * svelte's message: the reason, a line break, and the link to the
+   * warning's docs.
+   */
   message: string;
   start: number;
   end: number;
@@ -286,7 +292,10 @@ export function a11yWarnings(
   return warnings;
 }
 
-/** The codes the comments right before the node at `index` in its fragment ignore. */
+/**
+ * The codes the comments right before the node at `index` in its fragment
+ * ignore.
+ */
 function ignoredBefore(
   fragment: AST.Fragment,
   index: number,
@@ -427,7 +436,8 @@ function checkElement(node: Element, path: readonly Node[], warn: Warn): void {
               a11y_no_redundant_roles(currentRole),
             );
           }
-          // A footer's or header's role is redundant unless it's in a section or an article.
+          // A footer's or header's role is redundant unless it's in a section or an
+          // article.
           if (
             !isParent(path, ["section", "article"]) &&
             currentRole === nestedImplicitSemantics.get(node.name)
@@ -957,7 +967,10 @@ function implicitRole(
   return implicitSemantics.get(name);
 }
 
-/** Role tokens are split on ASCII whitespace and compared ASCII case-insensitively. */
+/**
+ * Role tokens are split on ASCII whitespace and compared ASCII
+ * case-insensitively.
+ */
 function roleTokens(value: string): string[] {
   return value
     .replace(UPPERCASE, (char) => char.toLowerCase())

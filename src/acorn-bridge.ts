@@ -1,12 +1,13 @@
 import type { Position } from "acorn";
+
 import {
-  type Node as AcornNode,
-  type DestructuringErrors,
   definePlugin,
+  type DestructuringErrors,
   type ExportedNames,
   extendParser,
   type ForInit,
   hasLineBreak,
+  type Node as AcornNode,
   type ParserConstructor,
   type ParserInternals,
   type ParserOptions,

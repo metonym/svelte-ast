@@ -107,7 +107,10 @@ export type Accessibility = "public" | "private" | "protected";
 export type SignatureParameter =
   Identifier | ObjectPattern | ArrayPattern | RestElement;
 
-/** Fields the plugin adds to `Identifier`, `ObjectPattern`, `ArrayPattern` and `RestElement`. */
+/**
+ * Fields the plugin adds to `Identifier`, `ObjectPattern`, `ArrayPattern`
+ * and `RestElement`.
+ */
 export interface TSBindingFields {
   typeAnnotation?: TSTypeAnnotation | undefined;
   /** `a?` in a parameter list. */
@@ -276,7 +279,10 @@ export interface TSLiteralType extends BaseNode {
   literal: Literal | UnaryExpression | TemplateLiteralType;
 }
 
-/** A template literal type, `` `prefix-${T}` ``: a `TemplateLiteral` whose expressions are types. */
+/**
+ * A template literal type, `` `prefix-${T}` ``: a `TemplateLiteral` whose
+ * expressions are types.
+ */
 export interface TemplateLiteralType extends BaseNode {
   type: "TemplateLiteral";
   quasis: TemplateElement[];
@@ -394,7 +400,10 @@ export interface TSMethodSignature extends BaseNode {
   typeAnnotation?: TSTypeAnnotation;
 }
 
-/** In an interface, a type literal, or a class body (with the class member modifiers). */
+/**
+ * In an interface, a type literal, or a class body (with the class member
+ * modifiers).
+ */
 export interface TSIndexSignature extends BaseNode, TSClassMemberFields {
   type: "TSIndexSignature";
   parameters: Identifier[];
@@ -460,7 +469,10 @@ export interface TSEnumMember extends BaseNode {
   initializer?: Expression;
 }
 
-/** `namespace A {}`, `module "a" {}`, `declare global {}`; `namespace A.B {}` nests through `body`. */
+/**
+ * `namespace A {}`, `module "a" {}`, `declare global {}`;
+ * `namespace A.B {}` nests through `body`.
+ */
 export interface TSModuleDeclaration extends BaseNode {
   type: "TSModuleDeclaration";
   id: Identifier | StringLiteral;
@@ -475,7 +487,10 @@ export interface TSModuleBlock extends BaseNode {
   body: Array<Statement | ModuleDeclaration>;
 }
 
-/** A function declaration without a body: an overload or `declare function`. */
+/**
+ * A function declaration without a body: an overload or
+ * `declare function`.
+ */
 export interface TSDeclareFunction extends BaseNode, TSFunctionFields {
   type: "TSDeclareFunction";
   /** `null` in `export default function (): void;`. */
@@ -487,7 +502,10 @@ export interface TSDeclareFunction extends BaseNode, TSFunctionFields {
   declare?: boolean;
 }
 
-/** A `MethodDefinition`'s value when the method has no body: an overload or an abstract method. */
+/**
+ * A `MethodDefinition`'s value when the method has no body: an overload or
+ * an abstract method.
+ */
 export interface TSDeclareMethod extends BaseNode, TSFunctionFields {
   type: "TSDeclareMethod";
   id: null;

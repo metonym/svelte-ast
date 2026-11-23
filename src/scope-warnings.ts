@@ -203,7 +203,10 @@ class Gate {
 
   private markupWritten: Set<string> | null | undefined;
 
-  /** Whether `name` may be reassigned: a script's syntax, or the markup's source. */
+  /**
+   * Whether `name` may be reassigned: a script's syntax, or the markup's
+   * source.
+   */
   private mayBeWritten(name: string): boolean {
     if (this.markupWritten === undefined) {
       // `null`: the markup may write any name.
@@ -221,7 +224,10 @@ class Gate {
     );
   }
 
-  /** store_rune_conflict: `$x(...)` with a top-level `x` that isn't `x = $x(...)`. */
+  /**
+   * store_rune_conflict: `$x(...)` with a top-level `x` that isn't
+   * `x = $x(...)`.
+   */
   storeRuneConflict(): boolean {
     if (!RUNE_STORE.test(this.source)) return false;
     for (const [name, declaration] of this.declarations()) {
@@ -646,7 +652,10 @@ export class ScopeFacts {
     return reassigned;
   }
 
-  /** The binding an identifier refers to, as svelte's `scope.get`; not a store's. */
+  /**
+   * The binding an identifier refers to, as svelte's `scope.get`; not a
+   * store's.
+   */
   referenced(node: Identifier): Binding | null {
     const reference = this.scopes.referenceOf(node);
     if (reference === null || reference.store) return null;

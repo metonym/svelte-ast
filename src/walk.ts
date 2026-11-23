@@ -244,7 +244,10 @@ export const visitorKeys = {
   readonly [T in NodeType]: readonly ChildKey<T>[];
 };
 
-/** A table of the fields of each node type that {@link walk} visits, such as {@link visitorKeys} or {@link markupVisitorKeys}. */
+/**
+ * A table of the fields of each node type that {@link walk} visits, such
+ * as {@link visitorKeys} or {@link markupVisitorKeys}.
+ */
 export type VisitorKeys = Readonly<Partial<Record<string, readonly string[]>>>;
 
 const ELEMENT = ["attributes", "fragment"] as const;

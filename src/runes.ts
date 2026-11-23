@@ -1,7 +1,7 @@
 import {
+  lexComponent,
   type LexedAttribute,
   type LexedContent,
-  lexComponent,
 } from "./component-lexer";
 import { extractIdentifiers } from "./extract-identifiers";
 import { isReference } from "./is-reference";

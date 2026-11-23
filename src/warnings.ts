@@ -7,11 +7,17 @@ import { analyzeScopes, type Scopes } from "./scope";
 import { templateWarnings } from "./template-warnings";
 import type { AST } from "./types/svelte-ast";
 
-/** A warning svelte's compiler gives, with svelte's code, message and position. */
+/**
+ * A warning svelte's compiler gives, with svelte's code, message and
+ * position.
+ */
 export interface CompilerWarning {
   /** svelte's code, such as `"css_unused_selector"`. */
   code: string;
-  /** svelte's message: the reason, a line break, and the link to the warning's docs. */
+  /**
+   * svelte's message: the reason, a line break, and the link to the
+   * warning's docs.
+   */
   message: string;
   start: number;
   end: number;

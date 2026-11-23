@@ -1,8 +1,9 @@
 import type { Position } from "acorn";
+
 import {
   type ClassStatement,
-  type DestructuringErrors,
   definePlugin,
+  type DestructuringErrors,
   type ExportedNames,
   type ForInit,
   hasLineBreak,

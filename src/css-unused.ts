@@ -225,7 +225,10 @@ const TS_WRAPPERS: ReadonlySet<string> = new Set([
   "TSInstantiationExpression",
 ]);
 
-/** The expression without the TypeScript wrappers svelte strips before it analyzes. */
+/**
+ * The expression without the TypeScript wrappers svelte strips before it
+ * analyzes.
+ */
 function stripTs(expression: Expression): Expression {
   let node = expression;
   while (TS_WRAPPERS.has(node.type)) {
@@ -343,7 +346,10 @@ class UnusedSelectors {
     return meta;
   }
 
-  /** A copy of `node` with `fields`, which shares its metadata, as svelte's spread copies do. */
+  /**
+   * A copy of `node` with `fields`, which shares its metadata, as svelte's
+   * spread copies do.
+   */
   private copyRelative(
     node: RelativeSelector,
     fields: Partial<RelativeSelector>,
@@ -358,7 +364,10 @@ class UnusedSelectors {
     for (const child of cssChildren(node)) this.markUsedDeep(child);
   }
 
-  /** Marks the outermost complex selectors in `node` used, as a walk that doesn't go into them. */
+  /**
+   * Marks the outermost complex selectors in `node` used, as a walk that
+   * doesn't go into them.
+   */
   private markUsedShallow(node: CssNode): void {
     if (node.type === "ComplexSelector") {
       this.complex(node).used = true;
@@ -455,7 +464,10 @@ class UnusedSelectors {
     snippets.add(snippet);
   }
 
-  /** Links a render tag to the snippet it renders; whether that's all it can render. */
+  /**
+   * Links a render tag to the snippet it renders; whether that's all it can
+   * render.
+   */
   private linkRenderTag(node: AST.RenderTag): boolean {
     const callee = stripTs(
       (unwrapOptional(node.expression) as { callee: Expression }).callee,
@@ -468,7 +480,10 @@ class UnusedSelectors {
     return callee.type === "Identifier" && isResolvedSnippet(binding);
   }
 
-  /** Links a component to the snippets it's given; whether those are all it can render. */
+  /**
+   * Links a component to the snippets it's given; whether those are all it
+   * can render.
+   */
   private linkComponent(node: ComponentLike): boolean {
     let resolved = true;
     for (const attribute of node.attributes) {
@@ -1455,7 +1470,10 @@ function slotOf(node: Node): string | null {
   return null;
 }
 
-/** A component's children, split by slot into copies of its fragment, as svelte visits them. */
+/**
+ * A component's children, split by slot into copies of its fragment, as
+ * svelte visits them.
+ */
 function slotFragments(node: ComponentLike): AST.Fragment[] {
   let comments: Node[] = [];
   const slots = new Map<string, Node[]>([["default", []]]);

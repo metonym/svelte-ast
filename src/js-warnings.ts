@@ -1,8 +1,8 @@
 // The warnings svelte's analyzer gives as it walks every node of the
 // scripts and the markup: bidirectional_control_characters (Literal.js,
 // TemplateElement.js, Text.js), perf_avoid_inline_class
-// (NewExpression.js), perf_avoid_nested_class (ClassDeclaration.js),
-// and legacy_code and unknown_code, which its utils/extract_svelte_ignore.js
+// (NewExpression.js), perf_avoid_nested_class (ClassDeclaration.js), and
+// legacy_code and unknown_code, which its utils/extract_svelte_ignore.js
 // gives in runes mode for each `svelte-ignore` comment it reads, as often
 // as it reads it. svelte is MIT licensed.
 
@@ -29,7 +29,7 @@ import type {
   VariableDeclarator,
 } from "./types/estree";
 import type { AST } from "./types/svelte-ast";
-import { type VisitorKeys, valueVisitorKeys } from "./walk";
+import { valueVisitorKeys, type VisitorKeys } from "./walk";
 import { SVELTE_CODES } from "./warning-codes";
 
 type Node = AST.SvelteNode;
@@ -245,7 +245,10 @@ class Walker {
   private readonly report: Warn;
   // What the scope warnings need, when the component may have one.
   private facts: ScopeFacts | null;
-  /** Whether a `$props()` declaration warns: a custom element without `customElement.props`. */
+  /**
+   * Whether a `$props()` declaration warns: a custom element without
+   * `customElement.props`.
+   */
   customElementProps = false;
   // svelte's `state.function_depth`.
   private functionDepth = 0;
@@ -824,7 +827,10 @@ class Walker {
     this.children(node, ignores);
   }
 
-  /** The kinds and first values of `$props()`'s bindings, and custom_element_props_identifier. */
+  /**
+   * The kinds and first values of `$props()`'s bindings, and
+   * custom_element_props_identifier.
+   */
   private props(
     id: VariableDeclarator["id"],
     ignores: ReadonlySet<string>,
@@ -882,7 +888,10 @@ class Walker {
     }
   }
 
-  /** legacy_component_creation: `new App({ target })` of a `.svelte` file's default export. */
+  /**
+   * legacy_component_creation: `new App({ target })` of a `.svelte` file's
+   * default export.
+   */
   private componentCreation(
     node: ExpressionStatement,
     ignores: ReadonlySet<string>,
