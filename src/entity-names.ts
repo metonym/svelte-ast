@@ -1,4 +1,5 @@
 import { ENTITIES } from "./entity-table";
-import { lazyEntityNames } from "./html-entities";
+import { type EntityNames, lazyEntityNames } from "./html-entities";
 
-export const htmlEntityNames = /* @__PURE__ */ lazyEntityNames(ENTITIES);
+export const htmlEntityNames: () => EntityNames =
+  /* @__PURE__ */ lazyEntityNames(ENTITIES);

@@ -35,7 +35,7 @@ function decodeEntityNames(encoded: string): EntityNames {
   return { table, longest };
 }
 
-export const xmlEntityNames = lazyEntityNames(
+export const xmlEntityNames: () => EntityNames = lazyEntityNames(
   "0amp!12 1pos:13 0gt!1q 0lt!1o 0quot!y",
 );
 

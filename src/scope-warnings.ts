@@ -611,16 +611,22 @@ function unwrap<T extends Node | null | undefined>(node: T): T {
 export class ScopeFacts {
   readonly scopes: Scopes;
   /** The kinds the rune declarators the walk has reached give. */
-  readonly kinds = new Map<Binding, RuneKind>();
+  readonly kinds: Map<Binding, RuneKind> = new Map<Binding, RuneKind>();
   /** Their `scope.function_depth`. */
-  readonly depths = new Map<Binding, number>();
+  readonly depths: Map<Binding, number> = new Map<Binding, number>();
   /** The bindings `export { x }` in runes mode's instance marks reassigned. */
-  readonly exported = new Set<Binding>();
+  readonly exported: Set<Binding> = new Set<Binding>();
   private lastDeclared: Map<Binding, Identifier> | null = null;
   /** The first values svelte gives `$props()`'s bindings: the fallbacks. */
-  readonly initials = new Map<Binding, AST.SvelteNode | null>();
+  readonly initials: Map<Binding, AST.SvelteNode | null> = new Map<
+    Binding,
+    AST.SvelteNode | null
+  >();
   /** svelte's `ignore_map`, for the identifiers the walk reaches. */
-  readonly ignores = new Map<Identifier, ReadonlySet<string>>();
+  readonly ignores: Map<Identifier, ReadonlySet<string>> = new Map<
+    Identifier,
+    ReadonlySet<string>
+  >();
   private readonly updated = new Map<Binding, boolean>();
 
   constructor(scopes: Scopes) {

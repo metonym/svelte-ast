@@ -33,7 +33,7 @@ export function skipComment(
   _value: string,
   _start: number,
   end: number,
-) {
+): void {
   commentEnd = end;
 }
 
@@ -44,7 +44,7 @@ export function onComment(
   end: number,
   startLoc?: { line: number; column: number } | false,
   endLoc?: { line: number; column: number } | false,
-) {
+): void {
   commentEnd = end;
   let value = rawValue;
 

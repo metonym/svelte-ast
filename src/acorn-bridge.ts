@@ -11,6 +11,7 @@ import {
   type ParserConstructor,
   type ParserInternals,
   type ParserOptions,
+  type Plugin,
   type WordTester,
 } from "./acorn-internals";
 import {
@@ -62,7 +63,7 @@ function wordTester(words: WordTester): WordTester {
   return tester;
 }
 
-export const declarations = definePlugin(
+export const declarations: Plugin = definePlugin(
   (Base) =>
     class extends Base {
       override declareName(name: string, bindingType: number, pos: number) {
@@ -117,7 +118,7 @@ export const declarations = definePlugin(
     },
 );
 
-export const tweaks = definePlugin((Base) => {
+export const tweaks: Plugin = definePlugin((Base) => {
   const { keywordTypes, tokTypes } = Base.acorn;
   const keywordTokens = new Map(
     "break case catch continue debugger default do else finally for function if return switch throw try var while with null true false instanceof typeof void delete new in this const class extends export import super"

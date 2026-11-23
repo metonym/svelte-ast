@@ -413,7 +413,7 @@ export interface ParserConstructor {
   };
 }
 
-type Plugin = (BaseParser: typeof Parser) => typeof Parser;
+export type Plugin = (BaseParser: typeof Parser) => typeof Parser;
 
 export function definePlugin(
   plugin: (Base: ParserConstructor) => ParserConstructor,

@@ -108,7 +108,7 @@ const SLASH = 47;
 const EQUALS = 61;
 const GT = 62;
 
-export const isQuote = (code: number) =>
+export const isQuote = (code: number): code is 34 | 39 =>
   code === DOUBLE_QUOTE || code === SINGLE_QUOTE;
 
 export function nameEnd(

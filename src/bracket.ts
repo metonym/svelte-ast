@@ -13,7 +13,7 @@ const DEFAULT_BRACKETS: Record<string, string> = {
 export function matchBracket(
   source: string,
   start: number,
-  brackets = DEFAULT_BRACKETS,
+  brackets: Record<string, string> = DEFAULT_BRACKETS,
 ): number {
   const close = Object.values(brackets);
   const stack: string[] = [];

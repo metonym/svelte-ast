@@ -9,6 +9,7 @@ import {
   hasLineBreak,
   type Node,
   type ParserOptions,
+  type Plugin,
   type Scope,
   type TokenType,
 } from "./acorn-internals";
@@ -89,7 +90,7 @@ const CHAR_SQUOTE = 39;
 
 const SPECULATION_FAILED = new SyntaxError("speculative parse failed");
 
-export const tsPlugin = definePlugin((Base) => {
+export const tsPlugin: Plugin = definePlugin((Base) => {
   const {
     tokTypes: tt,
     keywordTypes,

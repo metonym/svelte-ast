@@ -1,4 +1,4 @@
-export const RUNES = new Set([
+export const RUNES: Set<string> = new Set([
   "$state",
   "$state.raw",
   "$derived",
@@ -19,7 +19,7 @@ export const RUNES = new Set([
   "$host",
 ]);
 
-export const RUNE_NAMES = new Set([
+export const RUNE_NAMES: Set<string> = new Set([
   "$state",
   "$derived",
   "$props",

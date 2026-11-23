@@ -18,7 +18,7 @@ import type { AST } from "./types/svelte-ast";
 
 const REGEX_NON_LF_LINE_BREAK = /\r(?!\n)|[\u2028\u2029]/;
 
-export const REGEX_WHITESPACE_THEN_CLOSING_BRACE = /\s*}/y;
+export const REGEX_WHITESPACE_THEN_CLOSING_BRACE: RegExp = /\s*}/y;
 
 export function scanIdentifier(source: string, from: number): number {
   const code = source.codePointAt(from);
@@ -48,7 +48,7 @@ export class TemplateParserState {
   readonly root: AST.Root;
   readonly stack: StackNode[];
   readonly fragments: AST.Fragment[];
-  readonly metaTags = new Set<string>();
+  readonly metaTags: Set<string> = new Set<string>();
   lastAutoClosedTag?: { tag: string; reason: string; depth: number };
   nextAngle = -1;
   nextBrace = -1;
