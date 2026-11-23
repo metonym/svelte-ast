@@ -25,7 +25,7 @@ interface InvalidThis {
   end: number;
 }
 
-export type ParseWarning = ImplicitClose | InvalidThis;
+type ParseWarning = ImplicitClose | InvalidThis;
 
 const recorded = new WeakMap<AST.Root, ParseWarning[]>();
 

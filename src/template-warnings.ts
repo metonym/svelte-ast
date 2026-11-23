@@ -25,7 +25,7 @@ interface Span {
 }
 type Warn = (node: Span, code: string, message: string) => void;
 
-export interface TemplateWarningsOptions {
+interface TemplateWarningsOptions {
   runes: boolean;
   source: string;
   filename: string | undefined;

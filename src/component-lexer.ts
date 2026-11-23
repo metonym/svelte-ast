@@ -117,7 +117,7 @@ export function lexComponent(input: string): LexedComponent {
   return lex(source, isTypeScript(source), null);
 }
 
-export interface TopLevelTags {
+interface TopLevelTags {
   tags: number[];
   comments: number[];
 }

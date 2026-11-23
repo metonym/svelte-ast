@@ -187,7 +187,7 @@ interface JsComment {
   start?: number;
 }
 
-export interface JsWarningsOptions {
+interface JsWarningsOptions {
   runes: boolean;
   /** Whether the component compiles as a custom element. */
   customElement: boolean;
