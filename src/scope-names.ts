@@ -10,6 +10,9 @@ export function hasName(names: string[] | undefined, name: string): boolean {
     entry = { names: new Set(), length: 0 };
     sets.set(names, entry);
   }
-  while (entry.length < names.length) entry.names.add(names[entry.length++]);
+  while (entry.length < names.length) {
+    const next = names[entry.length++];
+    if (next !== undefined) entry.names.add(next);
+  }
   return entry.names.has(name);
 }

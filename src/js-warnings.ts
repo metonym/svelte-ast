@@ -689,7 +689,8 @@ class Walker {
 
   private fragment(nodes: readonly Node[], ignores: ReadonlySet<string>): void {
     for (let i = 0; i < nodes.length; i++) {
-      this.visit(nodes[i], null, nodes, i, ignores);
+      const node = nodes[i];
+      if (node) this.visit(node, null, nodes, i, ignores);
     }
   }
 
@@ -812,7 +813,7 @@ class Walker {
       for (const id of extractIdentifiers(node.id)) {
         const binding = facts.scopes.bindingOf(id);
         if (binding === null) continue;
-        facts.kinds.set(binding, kind);
+        if (kind !== undefined) facts.kinds.set(binding, kind);
         facts.depths.set(binding, this.depth);
       }
     }
@@ -904,6 +905,7 @@ class Walker {
       return;
     }
     const [argument] = expression.arguments;
+    if (!argument) return;
     const options = this.unwrap(argument);
     if (
       options.type !== "ObjectExpression" ||

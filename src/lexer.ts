@@ -463,7 +463,7 @@ class Lexer {
     for (let i = this.pos; i < source.length; i = skipTrivia(source, i + 1)) {
       const code = source.charCodeAt(i);
       if (code === 34 || code === 39 || code === 96) {
-        const end = source.indexOf(source[i], i + 1);
+        const end = source.indexOf(source.charAt(i), i + 1);
         if (end === -1) return false;
         i = end;
       } else if (code === 60) {

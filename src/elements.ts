@@ -134,7 +134,8 @@ function hasAncestor(
   matches: (node: StackNode) => boolean | undefined,
 ): boolean {
   for (let i = stack.length - 1; i >= 0; i--) {
-    const found = matches(stack[i]);
+    const node = stack[i];
+    const found = node && matches(node);
     if (found !== undefined) return found;
   }
   return false;
@@ -262,7 +263,7 @@ function openElement(state: TemplateParserState, start: number): void {
     start,
     name,
   );
-  if (state.loc) element.name_loc = tag.loc;
+  if (state.loc && tag.loc) element.name_loc = tag.loc;
   element.attributes = [];
   element.fragment = { type: "Fragment", nodes: [] };
 
@@ -312,9 +313,11 @@ function openElement(state: TemplateParserState, start: number): void {
         end: definition.end,
       });
     }
+    // invariant: a static `this` has a chunk; `this=""` is one empty `Text`.
+    const [chunk] = Array.isArray(definition.value) ? definition.value : [];
     element.tag = isExpressionValue(definition.value)
       ? expressionOf(definition.value)
-      : literalTag(definition.value[0]);
+      : literalTag(chunk ?? svelte_element_missing_this(definition));
   }
 
   if (!state.eat("/") && !isVoid(name)) {
@@ -456,7 +459,7 @@ function createAttribute(
   end: number,
   value: AST.Attribute["value"],
 ): AST.Attribute {
-  return state.loc
+  return state.loc && name.loc !== undefined
     ? {
         type: "Attribute",
         start,
@@ -487,7 +490,7 @@ function readStaticAttribute(state: TemplateParserState): AST.Attribute | null {
     const quoted = isQuote(source.charCodeAt(at));
     let end = -1;
     if (quoted) {
-      const close = source.indexOf(source[at], at + 1);
+      const close = source.indexOf(source.charAt(at), at + 1);
       if (close !== -1) end = close + 1;
     }
     if (end === -1) {
@@ -620,19 +623,19 @@ function firstChunk(
 function directive(
   state: TemplateParserState,
   type: AST.Directive["type"],
-  tag: { name: string; loc?: SourceLocation },
+  tag: { name: string; loc?: SourceLocation | undefined },
   colon: number,
   start: number,
   end: number,
   value: true | AST.ExpressionTag | Chunk[],
 ): AST.Directive {
-  const [name, ...modifiers] = tag.name.slice(colon + 1).split("|");
+  const [name = "", ...modifiers] = tag.name.slice(colon + 1).split("|");
   if (name === "") {
     directive_missing_name({ start, end: start + colon + 1 }, tag.name);
   }
 
   const node: DirectiveFields = { start, end, type, name };
-  if (state.loc) node.name_loc = tag.loc;
+  if (state.loc && tag.loc) node.name_loc = tag.loc;
 
   if (type === "StyleDirective") {
     node.modifiers = modifiers;
@@ -713,7 +716,7 @@ function readAttributeValue(
 
   return quoted || value.length > 1 || value[0]?.type === "Text"
     ? value
-    : value[0];
+    : (value[0] ?? value);
 }
 
 function readSequence(

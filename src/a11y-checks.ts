@@ -724,8 +724,9 @@ function checkElement(
         (child) =>
           child.type === "RegularElement" && child.name === "figcaption",
       );
-      if (index !== -1 && index !== 0 && index !== children.length - 1) {
-        warn(children[index], "a11y_figcaption_index", a11y_figcaption_index());
+      const figcaption = children[index];
+      if (figcaption && index !== 0 && index !== children.length - 1) {
+        warn(figcaption, "a11y_figcaption_index", a11y_figcaption_index());
       }
       break;
     }
@@ -768,7 +769,7 @@ function isEventAttribute(attribute: AST.Attribute): boolean {
 }
 
 function list(strings: readonly string[], conjunction = "or"): string {
-  if (strings.length === 1) return strings[0];
+  if (strings.length === 1) return strings[0] ?? "";
   if (strings.length === 2) return `${strings[0]} ${conjunction} ${strings[1]}`;
   return `${strings.slice(0, -1).join(", ")} ${conjunction} ${strings[strings.length - 1]}`;
 }
@@ -863,12 +864,13 @@ function isValidAutocomplete(autocomplete: string | true | null): boolean {
   const tokens = autocomplete.trim().toLowerCase().split(WHITESPACES);
   if (typeof tokens[0] === "string" && tokens[0].startsWith("section-"))
     tokens.shift();
-  if (addressTypeTokens.includes(tokens[0])) tokens.shift();
-  if (autofillFieldNameTokens.includes(tokens[0])) {
+  if (addressTypeTokens.includes(tokens[0] ?? "")) tokens.shift();
+  if (autofillFieldNameTokens.includes(tokens[0] ?? "")) {
     tokens.shift();
   } else {
-    if (contactTypeTokens.includes(tokens[0])) tokens.shift();
-    if (autofillContactFieldNameTokens.includes(tokens[0])) tokens.shift();
+    if (contactTypeTokens.includes(tokens[0] ?? "")) tokens.shift();
+    if (autofillContactFieldNameTokens.includes(tokens[0] ?? ""))
+      tokens.shift();
     else return false;
   }
   if (tokens[0] === "webauthn") tokens.shift();
@@ -1124,14 +1126,13 @@ function warnMissingAttribute(
   warn: Warn,
   name = node.name,
 ): void {
+  const first = attributes[0] ?? "";
   const article =
-    STARTS_WITH_VOWEL.test(attributes[0]) || attributes[0] === "href"
-      ? "an"
-      : "a";
+    STARTS_WITH_VOWEL.test(first) || first === "href" ? "an" : "a";
   const sequence =
     attributes.length > 1
-      ? `${attributes.slice(0, -1).join(", ")} or ${attributes[attributes.length - 1]}`
-      : attributes[0];
+      ? `${attributes.slice(0, -1).join(", ")} or ${attributes.at(-1)}`
+      : first;
   warn(
     node,
     "a11y_missing_attribute",

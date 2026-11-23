@@ -38,11 +38,11 @@ function levenshtein(a: string, b: string): number {
         value =
           a.charAt(j - 1) === b.charAt(i - 1)
             ? prev
-            : Math.min(current[j], current[j - 1], prev) + 1;
+            : Math.min(current[j] ?? 0, current[j - 1] ?? 0, prev) + 1;
       } else {
         value = i + j;
       }
-      prev = current[j];
+      prev = current[j] ?? 0;
       current[j] = value;
     }
   }

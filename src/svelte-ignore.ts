@@ -38,7 +38,7 @@ export function ignoreCodes(
   if (runes) {
     // Codes are separated by commas; anything after the last one is prose.
     for (const found of rest.matchAll(IGNORE_CODE_COMMA)) {
-      const code = found[1];
+      const code = found[1] ?? "";
       if (CODES.has(code)) codes.push(code);
       else invalid?.(code, length + found.index);
       if (!found[2]) break;

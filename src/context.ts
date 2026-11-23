@@ -71,7 +71,7 @@ function readTypeAnnotation(
     expression = parseExpressionAt(state, synthetic.slice(0, b), a).node;
   }
   if (expression.type === "SequenceExpression") {
-    expression = expression.expressions[0];
+    expression = expression.expressions[0] ?? expression;
   }
 
   state.index = expression.end;

@@ -26,7 +26,8 @@ function decodeEntityNames(encoded: string): EntityNames {
   for (const entry of encoded.split(" ")) {
     const separator = entry.search(REGEX_ENTITY_SEPARATOR);
     name =
-      name.slice(0, Number.parseInt(entry[0], 36)) + entry.slice(1, separator);
+      name.slice(0, Number.parseInt(entry.charAt(0), 36)) +
+      entry.slice(1, separator);
     const code = Number.parseInt(entry.slice(separator + 1), 36);
     table.set(`${name};`, code);
     if (entry[separator] === "!") table.set(name, code);
@@ -96,7 +97,7 @@ function readReference(
 function validateCode(code: number, inAttribute: boolean): number {
   if (code === 10 && !inAttribute) return 32;
   if (code < 128) return code;
-  if (code <= 159) return WINDOWS_1252[code - 128];
+  if (code <= 159) return WINDOWS_1252[code - 128] ?? code;
   if (code >= 55296 && code <= 57343) return 0;
   if (code <= 196607) return code;
   if ((code >= 917504 && code <= 917631) || (code >= 917760 && code <= 917999))

@@ -352,7 +352,7 @@ function readStaticAttributes(
       const quote = source.charCodeAt(at);
       let valueEnd = -1;
       if (isQuote(quote)) {
-        const close = source.indexOf(source[at], at + 1);
+        const close = source.indexOf(source.charAt(at), at + 1);
         if (close !== -1) valueEnd = close + 1;
       }
       if (valueEnd === -1) {

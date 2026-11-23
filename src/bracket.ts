@@ -20,7 +20,7 @@ export function matchBracket(
 
   let i = start;
   while (i < source.length) {
-    const char = source[i++];
+    const char = source.charAt(i++);
 
     if (char === "'" || char === '"' || char === "`") {
       i = matchQuote(source, i, char);
@@ -31,7 +31,7 @@ export function matchBracket(
       stack.push(char);
     } else if (close.includes(char)) {
       const expected = brackets[stack.pop() ?? ""];
-      if (char !== expected) expected_token(i - 1, expected);
+      if (char !== expected) expected_token(i - 1, expected ?? char);
       if (stack.length === 0) return i;
     }
   }
@@ -42,7 +42,7 @@ export function matchBracket(
 function matchQuote(source: string, start: number, quote: string): number {
   let i = start;
   while (i < source.length) {
-    const char = source[i++];
+    const char = source.charAt(i++);
     if (char === quote) return i;
     if (char === "\\") i++;
     else if (quote === "`" && char === "$" && source[i] === "{") {

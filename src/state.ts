@@ -49,7 +49,8 @@ export class TemplateParserState {
   readonly stack: StackNode[];
   readonly fragments: AST.Fragment[];
   readonly metaTags: Set<string> = new Set<string>();
-  lastAutoClosedTag?: { tag: string; reason: string; depth: number };
+  lastAutoClosedTag?:
+    { tag: string; reason: string; depth: number } | undefined;
   nextAngle = -1;
   nextBrace = -1;
 
@@ -149,8 +150,9 @@ export class TemplateParserState {
     return identifier;
   }
 
+  // The root stays at the bottom of the stack, so it's the fallback.
   current(): StackNode {
-    return this.stack[this.stack.length - 1];
+    return this.stack[this.stack.length - 1] ?? this.root;
   }
 
   append(node: AST.Fragment["nodes"][number]): void {

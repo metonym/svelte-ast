@@ -162,7 +162,7 @@ function openEach(state: TemplateParserState, start: number): void {
 
   if (!state.match("as")) {
     if (expression.type === "SequenceExpression") {
-      expression = expression.expressions[0];
+      expression = expression.expressions[0] ?? expression;
     }
 
     const stripped = stripTrailingAssertion(expression);

@@ -528,7 +528,9 @@ class Analysis implements Scopes {
     if (this.scopeIn !== null) return this.scopeIn.get(node) ?? null;
     this.recorded ??= new Analysis(this.ast, true, this.types);
     const recorded = this.recorded.scopeIn?.get(node);
-    return recorded === undefined ? null : this.scopes[recorded.index];
+    return recorded === undefined
+      ? null
+      : (this.scopes[recorded.index] ?? null);
   }
 
   private scope(

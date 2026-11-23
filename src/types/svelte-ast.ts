@@ -353,8 +353,8 @@ export declare namespace AST {
     context: Pattern | null;
     body: Fragment;
     fallback?: Fragment;
-    index?: string;
-    key?: Expression;
+    index?: string | undefined;
+    key?: Expression | undefined;
   }
 
   /** An `{#if ...}` block */
@@ -390,7 +390,7 @@ export declare namespace AST {
     type: "SnippetBlock";
     expression: Identifier;
     parameters: Pattern[];
-    typeParams?: string;
+    typeParams?: string | undefined;
     body: Fragment;
   }
 

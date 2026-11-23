@@ -536,6 +536,7 @@ class UnusedSelectors {
           const parentIsGlobal = parentRule.prelude.children.some(
             (child) =>
               child.children.length === 1 &&
+              child.children[0] !== undefined &&
               this.relative(child.children[0]).isGlobal,
           );
           // `&:hover` in `:global(.foo) { &:hover { … } }` is used
@@ -707,6 +708,7 @@ class UnusedSelectors {
     if (from >= to) return false;
     const index = direction === FORWARD ? from : to - 1;
     const relative = relatives[index];
+    if (!relative) return false;
     const restFrom = direction === FORWARD ? from + 1 : from;
     const restTo = direction === FORWARD ? to : to - 1;
     return (
@@ -772,8 +774,8 @@ class UnusedSelectors {
             sibling.type === "Component"
           ) {
             // `{@render foo()}<p>foo</p>` with `:global(.x) + p` is a match
-            if (to - from === 1 && this.relative(relatives[from]).isGlobal)
-              matched = true;
+            const only = to - from === 1 ? relatives[from] : undefined;
+            if (only && this.relative(only).isGlobal) matched = true;
           } else if (
             this.applySelector(relatives, rule, sibling, direction, from, to)
           ) {
@@ -799,7 +801,8 @@ class UnusedSelectors {
     rule: Rule,
   ): boolean {
     for (let i = from; i < to; i++) {
-      if (!this.isGlobal(relatives[i], rule)) return false;
+      const relative = relatives[i];
+      if (!relative || !this.isGlobal(relative, rule)) return false;
     }
     return true;
   }
@@ -879,8 +882,8 @@ class UnusedSelectors {
               ),
             );
         }
-        // `.x:has(.y)` looks down the tree: match what's in :has(...)
-        // first, as if it were `.x .y`.
+        // Since `.x:has(.y)` looks down the tree, what's in :has(...) is
+        // matched first, as if it were `.x .y`.
         let matched = false;
         for (const complex of selector.args.children) {
           const [first, ...rest] = this.truncate(complex);

@@ -86,13 +86,14 @@ export function invalidWithAncestor(
   ancestors: readonly string[],
 ): string | null {
   if (child.includes("-")) return null;
-  const ancestor = ancestors[ancestors.length - 1];
+  const ancestor = ancestors.at(-1);
+  if (ancestor === undefined) return null;
   const disallowed = rule(ancestor);
   if (disallowed === undefined) return null;
   if ("resetBy" in disallowed && disallowed.resetBy) {
     for (let i = ancestors.length - 2; i >= 0; i--) {
       if (ancestors[i]?.includes("-")) return null;
-      if (disallowed.resetBy.includes(ancestors[i])) return null;
+      if (disallowed.resetBy.includes(ancestors[i] ?? "")) return null;
     }
   }
   if ("descendant" in disallowed && disallowed.descendant.includes(child)) {

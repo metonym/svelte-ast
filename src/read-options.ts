@@ -269,7 +269,8 @@ function readCustomElement(
   }
 
   const extend = properties.get("extend");
-  if (extend) customElement.extend = extend as CustomElement["extend"];
+  if (extend)
+    customElement.extend = extend as NonNullable<CustomElement["extend"]>;
 
   return customElement;
 }

@@ -517,10 +517,10 @@ export const tsPlugin: Plugin = definePlugin((Base) => {
     ) {
       const node = this.startNode();
       const hasLeadingOperator = this.eat(operator);
-      const types: Node[] = [];
-      do types.push(parseConstituent());
-      while (this.eat(operator));
-      if (types.length === 1 && !hasLeadingOperator) return types[0];
+      const first = parseConstituent();
+      const types: Node[] = [first];
+      while (this.eat(operator)) types.push(parseConstituent());
+      if (types.length === 1 && !hasLeadingOperator) return first;
       node.types = types;
       return this.finishNode(node, type);
     }
@@ -1800,7 +1800,8 @@ export const tsPlugin: Plugin = definePlugin((Base) => {
         }
         const element = this.parseClassElement(constructorAllowsSuper) as Node;
         element.decorators = decorators;
-        this.tsResetStart(element, decorators[0]);
+        const [first] = decorators;
+        if (first) this.tsResetStart(element, first);
         return element;
       }
       if (this.eat(tt.semi)) return null;

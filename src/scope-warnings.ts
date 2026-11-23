@@ -430,7 +430,7 @@ const SPACE = /\s/;
 /** The word that ends before `before`, past spaces. */
 function wordBefore(text: string, before: number): string {
   let end = before;
-  while (end > 0 && SPACE.test(text[end - 1])) end--;
+  while (end > 0 && SPACE.test(text.charAt(end - 1))) end--;
   let start = end;
   while (start > 0 && isWord(text.charCodeAt(start - 1))) start--;
   return text.slice(start, end);
@@ -439,7 +439,7 @@ function wordBefore(text: string, before: number): string {
 /** The word that starts at `after`, past spaces. */
 function wordAfter(text: string, after: number): string {
   let start = after;
-  while (start < text.length && SPACE.test(text[start])) start++;
+  while (start < text.length && SPACE.test(text.charAt(start))) start++;
   let end = start;
   while (end < text.length && isWord(text.charCodeAt(end))) end++;
   return text.slice(start, end);
@@ -458,7 +458,7 @@ function markupWrites(markup: string): Set<string> {
       continue;
     }
     let end = i;
-    while (end > 0 && "+-*/%&|^<>?".includes(markup[end - 1])) end--;
+    while (end > 0 && "+-*/%&|^<>?".includes(markup.charAt(end - 1))) end--;
     names.add(wordBefore(markup, end));
   }
   for (const operator of ["++", "--"]) {
