@@ -2,7 +2,7 @@
 // svelte's compiler. svelte is MIT licensed.
 import { a11yChecks } from "./a11y-checks";
 import { componentWarnings } from "./component-warnings";
-import { cssUnusedSelectors } from "./css-unused";
+import { unusedSelectors } from "./css-unused";
 import { jsWarnings } from "./js-warnings";
 import { analyzeScopes, type Scopes } from "./scope";
 import { templateWarnings } from "./template-warnings";
@@ -113,6 +113,9 @@ export function compilerWarnings(
   ) => {
     warnings.push({ code, message, start: node.start, end: node.end });
   };
+  // The template checks, the CSS check's element lists and, if asked
+  // for, the a11y checks share one walk, so the markup is walked once.
+  const css = unusedSelectors(ast, runes, scopes);
   templateWarnings(
     ast,
     {
@@ -125,9 +128,12 @@ export function compilerWarnings(
       scopes,
     },
     push,
-    options.a11y ? a11yChecks(warnings) : undefined,
+    {
+      ...css?.hooks,
+      ...(options.a11y === true && { element: a11yChecks(warnings) }),
+    },
   );
-  cssUnusedSelectors(ast, runes, scopes, push);
+  css?.finish(push);
   componentWarnings(ast, runes, options.customElement ?? false, push);
   jsWarnings(
     ast,

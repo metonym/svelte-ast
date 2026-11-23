@@ -1,5 +1,6 @@
 import { extractIdentifiers } from "./extract-identifiers";
 import { isReference } from "./is-reference";
+import { slotOf } from "./markup-walk";
 import { fieldsOf, isNode } from "./nodes";
 import { RUNE_NAMES, RUNES } from "./rune-names";
 import type {
@@ -411,16 +412,6 @@ for (const [type, all] of Object.entries(visitorKeys)) {
     all,
   };
 }
-
-const ELEMENTS = new Set([
-  "SvelteElement",
-  "RegularElement",
-  "SvelteFragment",
-  "Component",
-  "SvelteComponent",
-  "SvelteSelf",
-  "SlotElement",
-]);
 
 const NO_BINDINGS: ReadonlyMap<string, Binding> = new Map();
 
@@ -1817,22 +1808,6 @@ function isFunction(node: AST.SvelteNode): node is FunctionNode {
     node.type === "FunctionExpression" ||
     node.type === "FunctionDeclaration"
   );
-}
-
-function slotOf(node: AST.SvelteNode): string | null {
-  if (!ELEMENTS.has(node.type) || !("attributes" in node)) return null;
-  for (const attribute of node.attributes ?? []) {
-    if (
-      attribute.type === "Attribute" &&
-      attribute.name === "slot" &&
-      Array.isArray(attribute.value) &&
-      attribute.value.length === 1 &&
-      attribute.value[0].type === "Text"
-    ) {
-      return attribute.value[0].data;
-    }
-  }
-  return null;
 }
 
 function runeOf(

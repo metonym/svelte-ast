@@ -1,3 +1,4 @@
+import type { MarkupHooks } from "./markup-walk";
 // A port of svelte's check for unused CSS selectors: its CSS analysis
 // (phases/2-analyze/css/css-analyze.js), pruning (css-prune.js), warning
 // (css-warn.js) and their helpers (css/utils.js), with the element paths
@@ -255,30 +256,38 @@ function isResolvedSnippet(binding: Binding | null): boolean {
   );
 }
 
+type CssWarn = (
+  node: AST.CSS.ComplexSelector,
+  code: string,
+  message: string,
+) => void;
+
 /**
  * The selectors in a component's `<style>` that svelte's compiler warns
- * match nothing in the markup, as svelte's `css_unused_selector` warnings.
+ * match nothing in the markup, as svelte's `css_unused_selector` warnings:
+ * hooks that collect the markup during a walk another check runs, and
+ * `finish`, which warns after it. Undefined when the component has no
+ * rules to check.
  */
-export function cssUnusedSelectors(
+export function unusedSelectors(
   ast: AST.Root,
   runes: boolean,
   scopes: () => Scopes,
-  warn: (node: AST.CSS.ComplexSelector, code: string, message: string) => void,
-): void {
+): { hooks: MarkupHooks; finish: (warn: CssWarn) => void } | undefined {
   const stylesheet = ast.css;
-  if (!stylesheet || stylesheet.children.length === 0) return;
+  if (!stylesheet || stylesheet.children.length === 0) return undefined;
   const { comment } = stylesheet.content;
   if (
     comment &&
     ignoreCodes(comment.data, runes).includes("css_unused_selector")
   ) {
-    return;
+    return undefined;
   }
-  new UnusedSelectors(ast, stylesheet, scopes).run(warn);
+  const unused = new UnusedSelectors(stylesheet, scopes);
+  return { hooks: unused.hooks(), finish: (warn) => unused.finish(warn) };
 }
 
 class UnusedSelectors {
-  private readonly ast: AST.Root;
   private readonly stylesheet: AST.CSS.StyleSheet;
   private readonly scopes: () => Scopes;
 
@@ -287,18 +296,19 @@ class UnusedSelectors {
   private readonly paths = new Map<Node, readonly Node[]>();
   private readonly snippetsOf = new Map<Renderer, Set<AST.SnippetBlock>>();
   private readonly sitesOf = new Map<AST.SnippetBlock, Set<Renderer>>();
+  // Collected as the walk goes, then linked in `finish`.
+  private readonly allSnippets = new Set<AST.SnippetBlock>();
+  private readonly renderers = new Map<Renderer, boolean>();
+  // How many `<svelte:head>`s the walk is in, since their elements aren't
+  // scoped.
+  private heads = 0;
 
   // The stylesheet's metadata.
   private readonly relatives = new Map<RelativeSelector, RelativeMeta>();
   private readonly complexes = new Map<ComplexSelector, ComplexMeta>();
   private readonly rules = new Map<Rule, RuleMeta>();
 
-  constructor(
-    ast: AST.Root,
-    stylesheet: AST.CSS.StyleSheet,
-    scopes: () => Scopes,
-  ) {
-    this.ast = ast;
+  constructor(stylesheet: AST.CSS.StyleSheet, scopes: () => Scopes) {
     this.stylesheet = stylesheet;
     this.scopes = scopes;
     this.relatives.set(NESTING_SELECTOR, {
@@ -308,10 +318,8 @@ class UnusedSelectors {
     this.relatives.set(ANY_SELECTOR, { isGlobal: false, isGlobalLike: false });
   }
 
-  run(
-    warn: (node: ComplexSelector, code: string, message: string) => void,
-  ): void {
-    this.analyzeTemplate();
+  finish(warn: CssWarn): void {
+    this.linkSnippets();
     this.analyzeCss(this.stylesheet, null);
     this.prune(this.stylesheet);
     this.warnUnused(this.stylesheet, [], warn);
@@ -382,64 +390,44 @@ class UnusedSelectors {
     return this.scopes().bindingOf(identifier);
   }
 
-  private analyzeTemplate(): void {
-    const all = new Set<AST.SnippetBlock>();
-    const renderers = new Map<Renderer, boolean>();
-    const path: Node[] = [];
-    let heads = 0;
-    const visit = (node: Node): void => {
-      switch (node.type) {
-        case "RegularElement":
-        case "SvelteElement":
-          this.paths.set(node, path.slice());
-          // Elements in <svelte:head> aren't scoped.
-          if (heads === 0) this.elements.push(node as Element);
-          break;
-        case "SnippetBlock":
-          all.add(node as AST.SnippetBlock);
-          break;
-        case "RenderTag":
-          this.paths.set(node, path.slice());
-          renderers.set(
-            node as AST.RenderTag,
-            this.linkRenderTag(node as AST.RenderTag),
-          );
-          break;
-        case "Component":
-        case "SvelteComponent":
-        case "SvelteSelf":
-          this.paths.set(node, path.slice());
-          renderers.set(
-            node as ComponentLike,
-            this.linkComponent(node as ComponentLike),
-          );
-          break;
-      }
-      if (node.type === "SvelteHead") heads++;
-      path.push(node);
-      if (
-        node.type === "Component" ||
-        node.type === "SvelteComponent" ||
-        node.type === "SvelteSelf"
-      ) {
-        // svelte visits each slot's children as a fragment of their own,
-        // so a `slot="…"` child isn't a sibling of the others.
-        for (const fragment of slotFragments(node as ComponentLike)) {
-          path.push(fragment);
-          for (const child of fragment.nodes) visit(child);
-          path.pop();
+  hooks(): MarkupHooks {
+    return {
+      enter: (node, trail) => {
+        // eslint-disable-next-line typescript/switch-exhaustiveness-check -- only these nodes carry what the CSS check reads
+        switch (node.type) {
+          case "RegularElement":
+          case "SvelteElement":
+            this.paths.set(node, trail.slice());
+            if (this.heads === 0) this.elements.push(node);
+            break;
+          case "SnippetBlock":
+            this.allSnippets.add(node);
+            break;
+          case "RenderTag":
+            this.paths.set(node, trail.slice());
+            this.renderers.set(node, this.linkRenderTag(node));
+            break;
+          case "Component":
+          case "SvelteComponent":
+          case "SvelteSelf":
+            this.paths.set(node, trail.slice());
+            this.renderers.set(node, this.linkComponent(node));
+            break;
+          case "SvelteHead":
+            this.heads++;
+            break;
         }
-      } else {
-        forEachChild(node as AST.SvelteNode, visit, markupVisitorKeys);
-      }
-      path.pop();
-      if (node.type === "SvelteHead") heads--;
+      },
+      leave: (node) => {
+        if (node.type === "SvelteHead") this.heads--;
+      },
     };
-    visit(this.ast.fragment);
+  }
 
-    for (const [node, resolved] of renderers) {
+  private linkSnippets(): void {
+    for (const [node, resolved] of this.renderers) {
       // A renderer that can't be resolved could render any snippet.
-      if (!resolved) this.snippetsOf.set(node, all);
+      if (!resolved) this.snippetsOf.set(node, this.allSnippets);
       for (const snippet of this.snippets(node)) {
         let sites = this.sitesOf.get(snippet);
         if (!sites) {
@@ -1446,54 +1434,6 @@ function marksOthers(node: CssNode): boolean {
     if (marksOthers(child)) return true;
   }
   return false;
-}
-
-const ELEMENT_NODES: ReadonlySet<string> = new Set([
-  "SvelteElement",
-  "RegularElement",
-  "SvelteFragment",
-  "Component",
-  "SvelteComponent",
-  "SvelteSelf",
-  "SlotElement",
-]);
-
-/** svelte's `determine_slot`: the slot a component's child goes in. */
-function slotOf(node: Node): string | null {
-  if (!ELEMENT_NODES.has(node.type)) return null;
-  for (const attribute of (node as AST.RegularElement).attributes) {
-    if (attribute.type !== "Attribute" || attribute.name !== "slot") continue;
-    const { value } = attribute;
-    if (Array.isArray(value) && value.length === 1 && value[0].type === "Text")
-      return value[0].data;
-  }
-  return null;
-}
-
-/**
- * A component's children, split by slot into copies of its fragment, as
- * svelte visits them.
- */
-function slotFragments(node: ComponentLike): AST.Fragment[] {
-  let comments: Node[] = [];
-  const slots = new Map<string, Node[]>([["default", []]]);
-  for (const child of node.fragment.nodes as Node[]) {
-    if (child.type === "Comment") {
-      comments.push(child);
-      continue;
-    }
-    const name = slotOf(child) ?? "default";
-    let nodes = slots.get(name);
-    if (!nodes) {
-      nodes = [];
-      slots.set(name, nodes);
-    }
-    nodes.push(...comments, child);
-    if (name !== "default") comments = [];
-  }
-  return [...slots.values()].map(
-    (nodes) => ({ ...node.fragment, nodes }) as AST.Fragment,
-  );
 }
 
 function findSelectedcontent(select: Node): Node | null {

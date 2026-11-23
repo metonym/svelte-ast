@@ -19,25 +19,32 @@ export type ElementVisitor = (
   ignores: ReadonlySet<string>,
 ) => void;
 
+/** What a walk calls besides itself, each optional. */
+export interface MarkupHooks {
+  element?: ElementVisitor;
+  /**
+   * Called for each node before its children, with the fragments and
+   * nodes above it in turn, from the root fragment down to the one that
+   * holds it: a slot's children are in a copy of the component's fragment
+   * holding only them.
+   */
+  enter?: (node: Node, trail: readonly (Node | AST.Fragment)[]) => void;
+  /** Called for each node after its children. */
+  leave?: (node: Node) => void;
+}
+
 const NO_IGNORES: ReadonlySet<string> = new Set();
 
-// svelte's `element_nodes`, since `determine_slot` reads a `slot` only
-// from these.
+// svelte's `element_nodes` (phases/nodes.js), since `determine_slot`
+// reads a `slot` only from these.
 const ELEMENTS: ReadonlySet<string> = new Set([
-  "Component",
-  "TitleElement",
-  "SlotElement",
-  "RegularElement",
-  "SvelteBody",
-  "SvelteBoundary",
-  "SvelteComponent",
-  "SvelteDocument",
   "SvelteElement",
+  "RegularElement",
   "SvelteFragment",
-  "SvelteHead",
-  "SvelteOptions",
+  "Component",
+  "SvelteComponent",
   "SvelteSelf",
-  "SvelteWindow",
+  "SlotElement",
 ]);
 
 const isElementLike = (node: Node): node is AST.ElementLike =>
@@ -70,16 +77,19 @@ export class MarkupWalk {
   // svelte's `parent_element`: the element the markup sits in, until a
   // component, snippet or `<svelte:element>` resets it.
   protected parentElement: string | null = null;
-  private readonly onElement: ElementVisitor | undefined;
+  // The fragments and nodes above the one being visited, in turn, for
+  // `MarkupHooks.enter`.
+  private readonly trail: (Node | AST.Fragment)[] = [];
+  private readonly hooks: MarkupHooks;
 
-  constructor(runes: boolean, onElement?: ElementVisitor) {
+  constructor(runes: boolean, hooks: MarkupHooks = {}) {
     this.runes = runes;
-    this.onElement = onElement;
+    this.hooks = hooks;
   }
 
   /** Walks `ast`'s markup from its root fragment. */
   walk(ast: AST.Root): void {
-    this.fragment(ast.fragment.nodes, NO_IGNORES);
+    this.fragment(ast.fragment, NO_IGNORES);
   }
 
   /**
@@ -87,9 +97,11 @@ export class MarkupWalk {
    * comments.
    */
   protected fragment(
-    nodes: readonly Node[],
+    fragment: AST.Fragment,
     ignored: ReadonlySet<string>,
   ): void {
+    const nodes: readonly Node[] = fragment.nodes;
+    this.trail.push(fragment);
     for (let i = 0; i < nodes.length; i++) {
       const node = nodes[i];
       if (node === undefined || node.type === "Comment" || node.type === "Text")
@@ -102,6 +114,7 @@ export class MarkupWalk {
       }
       this.visit(node, ignores);
     }
+    this.trail.pop();
   }
 
   /** The codes the comments right before `nodes[index]` ignore. */
@@ -118,15 +131,20 @@ export class MarkupWalk {
   }
 
   private visit(node: Node, ignores: ReadonlySet<string>): void {
+    const { element, enter, leave } = this.hooks;
     if (
-      this.onElement !== undefined &&
+      element !== undefined &&
       (node.type === "RegularElement" || node.type === "SvelteElement")
     ) {
-      this.onElement(node, this.path, ignores);
+      element(node, this.path, ignores);
     }
+    enter?.(node, this.trail);
     this.path.push(node);
+    this.trail.push(node);
     this.visitNode(node, ignores);
+    this.trail.pop();
     this.path.pop();
+    leave?.(node);
   }
 
   /**
@@ -135,12 +153,12 @@ export class MarkupWalk {
    */
   protected within(
     parentElement: string | null,
-    nodes: readonly Node[],
+    fragment: AST.Fragment,
     ignores: ReadonlySet<string>,
   ): void {
     const outer = this.parentElement;
     this.parentElement = parentElement;
-    this.fragment(nodes, ignores);
+    this.fragment(fragment, ignores);
     this.parentElement = outer;
   }
 
@@ -149,14 +167,14 @@ export class MarkupWalk {
     // eslint-disable-next-line typescript/switch-exhaustiveness-check -- the default walks nothing, as most nodes have no markup children
     switch (node.type) {
       case "RegularElement":
-        this.within(node.name, node.fragment.nodes, ignores);
+        this.within(node.name, node.fragment, ignores);
         return;
       case "SvelteElement":
       case "SvelteFragment":
-        this.within(null, node.fragment.nodes, ignores);
+        this.within(null, node.fragment, ignores);
         return;
       case "SnippetBlock":
-        this.within(null, node.body.nodes, ignores);
+        this.within(null, node.body, ignores);
         return;
       case "Component":
       case "SvelteComponent":
@@ -168,20 +186,20 @@ export class MarkupWalk {
       case "SvelteBoundary":
       case "SvelteHead":
       case "KeyBlock":
-        this.fragment(node.fragment.nodes, ignores);
+        this.fragment(node.fragment, ignores);
         return;
       case "IfBlock":
-        this.fragment(node.consequent.nodes, ignores);
-        if (node.alternate) this.fragment(node.alternate.nodes, ignores);
+        this.fragment(node.consequent, ignores);
+        if (node.alternate) this.fragment(node.alternate, ignores);
         return;
       case "EachBlock":
         this.eachBody(node, ignores);
-        if (node.fallback) this.fragment(node.fallback.nodes, ignores);
+        if (node.fallback) this.fragment(node.fallback, ignores);
         return;
       case "AwaitBlock":
-        if (node.pending) this.fragment(node.pending.nodes, ignores);
-        if (node.then) this.fragment(node.then.nodes, ignores);
-        if (node.catch) this.fragment(node.catch.nodes, ignores);
+        if (node.pending) this.fragment(node.pending, ignores);
+        if (node.then) this.fragment(node.then, ignores);
+        if (node.catch) this.fragment(node.catch, ignores);
         return;
       default:
         // The rest have no markup children: tags, text, comments,
@@ -192,7 +210,7 @@ export class MarkupWalk {
 
   /** Walks an `{#each}` block's body; a subclass may track what's open. */
   protected eachBody(node: AST.EachBlock, ignores: ReadonlySet<string>): void {
-    this.fragment(node.body.nodes, ignores);
+    this.fragment(node.body, ignores);
   }
 
   private componentChildren(
@@ -207,14 +225,14 @@ export class MarkupWalk {
         (child) => child.type === "Comment" || slotOf(child) !== null,
       )
     ) {
-      this.within(null, children, ignores);
+      this.within(null, node.fragment, ignores);
       return;
     }
     // svelte walks each slot's children, with the comments before them,
     // as a fragment of its own, so the default slot's comments carry on
     // past its children.
-    let comments: Node[] = [];
-    const slots = new Map<string, Node[]>([["default", []]]);
+    let comments: AST.Fragment["nodes"] = [];
+    const slots = new Map<string, AST.Fragment["nodes"]>([["default", []]]);
     for (const child of children) {
       if (child.type === "Comment") {
         comments.push(child);
@@ -226,6 +244,8 @@ export class MarkupWalk {
       else nodes.push(...comments, child);
       if (slot !== "default") comments = [];
     }
-    for (const nodes of slots.values()) this.within(null, nodes, ignores);
+    for (const nodes of slots.values()) {
+      this.within(null, { ...node.fragment, nodes }, ignores);
+    }
   }
 }

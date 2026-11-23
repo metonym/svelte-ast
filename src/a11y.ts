@@ -33,7 +33,9 @@ export function a11yWarnings(
   options: A11yOptions = {},
 ): A11yWarning[] {
   const warnings: A11yWarning[] = [];
-  new MarkupWalk(options.runes ?? false, a11yChecks(warnings)).walk(ast);
+  new MarkupWalk(options.runes ?? false, {
+    element: a11yChecks(warnings),
+  }).walk(ast);
   return warnings;
 }
 

@@ -5,7 +5,7 @@
 // licensed.
 
 import { invalidWithAncestor, invalidWithParent } from "./html-tree-validation";
-import { type ElementVisitor, MarkupWalk } from "./markup-walk";
+import { type MarkupHooks, MarkupWalk } from "./markup-walk";
 import type { Binding, Scope, Scopes } from "./scope";
 import { skipTypeWrappers } from "./skip-type-wrappers";
 import type {
@@ -69,9 +69,9 @@ export function templateWarnings(
   ast: AST.Root,
   options: TemplateWarningsOptions,
   warn: Warn,
-  onElement?: ElementVisitor,
+  hooks?: MarkupHooks,
 ): void {
-  new TemplateWarnings(ast, options, warn, onElement).walk(ast);
+  new TemplateWarnings(ast, options, warn, hooks).walk(ast);
 }
 
 class TemplateWarnings extends MarkupWalk {
@@ -87,9 +87,9 @@ class TemplateWarnings extends MarkupWalk {
     ast: AST.Root,
     options: TemplateWarningsOptions,
     warn: Warn,
-    onElement?: ElementVisitor,
+    hooks?: MarkupHooks,
   ) {
-    super(options.runes, onElement);
+    super(options.runes, hooks);
     this.ast = ast;
     this.options = options;
     this.report = warn;
