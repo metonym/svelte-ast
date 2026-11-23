@@ -300,7 +300,7 @@ function scanScript(program: Node, scan: Scan): void {
   // The rune bindings each function declares, the innermost last; a
   // `$derived(...)` and a `$props()` pattern count as functions, since
   // svelte reads them one function deeper. `true`: only if reassigned.
-  const frames: Map<string, boolean>[] = [new Map()];
+  const frames: Map<string, boolean>[] = [new Map<string, boolean>()];
   const opened = new Set<Node>();
   const declared = new Set<Node>();
   const declare = (pattern: Parameters<typeof extractIdentifiers>[0]) => {

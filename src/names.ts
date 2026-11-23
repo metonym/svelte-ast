@@ -1,6 +1,8 @@
 const SLOTS = 2048;
 
-const names: Array<string | undefined> = new Array(SLOTS).fill(undefined);
+const names: Array<string | undefined> = new Array<string | undefined>(
+  SLOTS,
+).fill(undefined);
 
 export function resetNames(): void {
   names.fill(undefined);

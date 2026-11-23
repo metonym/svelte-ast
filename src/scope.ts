@@ -1,7 +1,7 @@
 import { extractIdentifiers } from "./extract-identifiers";
 import { isReference } from "./is-reference";
 import { slotOf } from "./markup-walk";
-import { fieldsOf, isNode } from "./nodes";
+import { dict, fieldsOf, isNode } from "./nodes";
 import { RUNE_NAMES, RUNES } from "./rune-names";
 import type {
   ArrowFunctionExpression,
@@ -388,7 +388,7 @@ function holdsTypes(type: string): boolean {
 }
 
 const keysByType: KeyTable = Object.assign(
-  Object.create(null),
+  dict<readonly string[]>(),
   valueVisitorKeys,
 );
 
@@ -402,7 +402,7 @@ interface TypedKeys {
 }
 
 /** The fields of each node type, for `{ types: true }`. */
-const typedKeysByType: Partial<Record<string, TypedKeys>> = Object.create(null);
+const typedKeysByType: Partial<Record<string, TypedKeys>> = dict();
 for (const [type, all] of Object.entries(visitorKeys)) {
   const values: readonly string[] = keysByType[type] ?? [];
   const types = all.filter((key) => !values.includes(key));
@@ -1140,7 +1140,9 @@ class Analysis implements Scopes {
     if (keys === undefined) throw new Error(`unknown node type: ${node.type}`);
     const fields = fieldsOf(node);
     for (let k = 0; k < keys.length; k++) {
-      const value = fields[keys[k]];
+      const key = keys[k];
+      if (key === undefined) continue;
+      const value = fields[key];
       if (Array.isArray(value)) {
         for (let i = 0; i < value.length; i++) {
           const child: unknown = value[i];
@@ -1163,10 +1165,13 @@ class Analysis implements Scopes {
       this.visitKeys(node, keys.all, scope);
       return;
     }
-    if (keys.types !== null) {
+    const types = keys.types;
+    if (types !== null) {
       const fields = fieldsOf(node);
-      for (let k = 0; k < keys.types.length; k++) {
-        const value = fields[keys.types[k]];
+      for (let k = 0; k < types.length; k++) {
+        const key = types[k];
+        if (key === undefined) continue;
+        const value = fields[key];
         if (value != null) this.visitType(value, node, scope);
       }
     }
@@ -1180,7 +1185,9 @@ class Analysis implements Scopes {
   ): void {
     const fields = fieldsOf(node);
     for (let k = 0; k < keys.length; k++) {
-      const value = fields[keys[k]];
+      const key = keys[k];
+      if (key === undefined) continue;
+      const value = fields[key];
       if (Array.isArray(value)) {
         for (let i = 0; i < value.length; i++) {
           const child: unknown = value[i];

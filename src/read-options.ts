@@ -154,6 +154,7 @@ function staticValue({ value }: AST.Attribute): LiteralValue {
   if (chunks.length === 0) return true;
   if (chunks.length > 1) return null;
   const [chunk] = chunks;
+  if (!chunk) return true;
   if (chunk.type === "Text") return chunk.data;
   return chunk.expression.type === "Literal" ? chunk.expression.value : null;
 }
@@ -203,6 +204,7 @@ function readCustomElement(
   const chunk = Array.isArray(attribute.value)
     ? attribute.value[0]
     : attribute.value;
+  if (!chunk) fail();
 
   if (chunk.type === "Text") {
     const tag = staticValue(attribute);

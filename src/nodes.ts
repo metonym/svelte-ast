@@ -23,13 +23,20 @@ export function fieldsOf(node: object): Record<string, unknown> {
   return node as Record<string, unknown>;
 }
 
+// A null prototype, so a key like `constructor` reads as missing.
+export function dict<T>(): Record<string, T> {
+  // eslint-disable-next-line typescript/no-unsafe-return -- Object.create is typed any; the declared return type is what callers get
+  return Object.create(null);
+}
+
 export function mapChildren(node: object, map: (child: Node) => Node): void {
   const fields = fieldsOf(node);
   for (const key in fields) {
     const value = fields[key];
     if (Array.isArray(value)) {
       for (let i = 0; i < value.length; i++) {
-        if (isNode(value[i])) value[i] = map(value[i]);
+        const child: unknown = value[i];
+        if (isNode(child)) value[i] = map(child);
       }
     } else if (isNode(value)) {
       fields[key] = map(value);

@@ -593,7 +593,7 @@ function expressionOf(attribute: AST.Attribute): Expression | null {
   const { value } = attribute;
   if (value === true) return null;
   if (!Array.isArray(value)) return value.expression;
-  if (value.length === 1 && value[0].type === "ExpressionTag") {
+  if (value.length === 1 && value[0]?.type === "ExpressionTag") {
     return value[0].expression;
   }
   return null;

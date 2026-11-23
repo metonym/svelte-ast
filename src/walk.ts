@@ -1,4 +1,4 @@
-import { fieldsOf, isNode } from "./nodes";
+import { dict, fieldsOf, isNode } from "./nodes";
 import type { AST } from "./types/svelte-ast";
 
 export { extractIdentifiers } from "./extract-identifiers";
@@ -382,11 +382,11 @@ export const valueVisitorKeys = {
 };
 
 const keysByType: Partial<Record<string, readonly string[]>> = Object.assign(
-  Object.create(null),
+  dict<readonly string[]>(),
   visitorKeys,
 );
 const valueKeysByType: Partial<Record<string, readonly string[]>> =
-  Object.assign(Object.create(null), valueVisitorKeys);
+  Object.assign(dict<readonly string[]>(), valueVisitorKeys);
 const NO_KEYS: readonly string[] = [];
 
 /**
@@ -486,6 +486,7 @@ export function forEachChild(
   const fields = fieldsOf(node);
   for (let k = 0; k < fieldKeys.length; k++) {
     const field = fieldKeys[k];
+    if (field === undefined) continue;
     const value = fields[field];
     if (Array.isArray(value)) {
       for (let i = 0; i < value.length; i++) {
@@ -549,6 +550,7 @@ function visit(
     const fields = fieldsOf(node);
     for (let k = 0; k < keys.length; k++) {
       const field = keys[k];
+      if (field === undefined) continue;
       const value = fields[field];
       if (Array.isArray(value)) {
         for (let i = 0; i < value.length; i++) {

@@ -44,9 +44,9 @@ const KEYWORDS: Record<string, number> = {
   require: REQUIRE,
 };
 const LONGEST_KEYWORD = 10;
-const KEYWORDS_BY_KEY: ([string, number][] | null)[] = new Array(
-  keywordKey(128, 0),
-).fill(null);
+const KEYWORDS_BY_KEY: ([string, number][] | null)[] = new Array<
+  [string, number][] | null
+>(keywordKey(128, 0)).fill(null);
 for (const entry of Object.entries(KEYWORDS)) {
   const key = keywordKey(entry[0].charCodeAt(0), entry[0].length);
   const entries = KEYWORDS_BY_KEY[key] ?? [];

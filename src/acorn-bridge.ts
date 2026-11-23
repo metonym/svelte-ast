@@ -24,7 +24,7 @@ import {
 import { js_parse_error, unexpected_eof } from "./errors";
 import { lineBreaksBefore, locate } from "./locator";
 import { internName } from "./names";
-import { mapChildren } from "./nodes";
+import { dict, mapChildren } from "./nodes";
 import { RESERVED_WORDS } from "./reserved-words";
 import { hasName } from "./scope-names";
 import { missingTypeScript } from "./support";
@@ -170,7 +170,7 @@ export const tweaks = definePlugin((Base) => {
       this.yieldPos = this.awaitPos = this.awaitIdentPos = 0;
       if (this.labels.length > 0) this.labels = [];
       for (const _ in this.undefinedExports) {
-        this.undefinedExports = Object.create(null);
+        this.undefinedExports = dict();
         break;
       }
       const scopes = this.scopeStack;
@@ -487,7 +487,7 @@ export function parseStatementAt(
       const parser = new ParserClass(options, source, index);
       try {
         parser.nextToken();
-        return parser.parseStatement(null, true, Object.create(null));
+        return parser.parseStatement(null, true, dict());
       } catch (error) {
         if (isSyntaxErrorAt(error) && error.pos === source.length) {
           unexpected_eof(source.length);
@@ -507,7 +507,7 @@ export function parseStatementsAt(
     const parser = new ParserClass(options, source, 0);
     const node = parser.startNode();
     const body: AcornNode[] = [];
-    const exports: ExportedNames = Object.create(null);
+    const exports: ExportedNames = dict();
     find((index) => {
       parser.pos = index;
       parser.context = parser.initialContext();

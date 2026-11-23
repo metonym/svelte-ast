@@ -927,7 +927,7 @@ function staticValue(
   if (!attribute) return null;
   if (attribute.value === true) return true;
   const { value } = attribute;
-  if (Array.isArray(value) && value.length === 1 && value[0].type === "Text")
+  if (Array.isArray(value) && value.length === 1 && value[0]?.type === "Text")
     return value[0].data;
   return null;
 }

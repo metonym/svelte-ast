@@ -154,7 +154,7 @@ function visit(
       if (Array.isArray(value)) {
         const inList = key === listKey;
         for (let i = 0; i < value.length; i++) {
-          const child = value[i];
+          const child: unknown = value[i];
           if (isNode(child)) {
             visit(child, node, inList ? i === value.length - 1 : listEmpty);
           }

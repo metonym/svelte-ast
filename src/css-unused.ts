@@ -214,7 +214,7 @@ function getAttributeExpression(
   const { value } = attribute;
   if (value === true) return;
   if (!Array.isArray(value)) return stripTs(value.expression);
-  if (value.length === 1 && value[0].type === "ExpressionTag")
+  if (value.length === 1 && value[0]?.type === "ExpressionTag")
     return stripTs(value[0].expression);
 }
 
@@ -1552,7 +1552,7 @@ function attributeMatches(
     if (
       Array.isArray(value) &&
       value.length === 1 &&
-      value[0].type === "Text"
+      value[0]?.type === "Text"
     ) {
       const matches = testAttribute(
         operator,

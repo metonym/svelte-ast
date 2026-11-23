@@ -1,10 +1,8 @@
-import { Parser } from "acorn";
-
+import { extendParser } from "./acorn-internals";
 import { isCommonType } from "./common-type";
 import { tsPlugin } from "./ts-plugin";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any -- `parseWholeType` isn't in acorn's published Parser type
-const TypeParser: any = Parser.extend(tsPlugin);
+const TypeParser = extendParser(tsPlugin);
 
 /**
  * Whether `text` is exactly one TypeScript type, e.g. a JSDoc
@@ -49,7 +47,11 @@ export function parsesAsType(text: string, inline: boolean): boolean {
     text,
   );
   try {
-    parser.parseWholeType();
+    // Read off the parser, since acorn's published type doesn't have it.
+    const parseWholeType: unknown = Reflect.get(parser, "parseWholeType");
+    if (typeof parseWholeType !== "function")
+      throw new TypeError("the TypeScript plugin has no parseWholeType");
+    Reflect.apply(parseWholeType, parser, []);
     return !lineCommentAtEnd;
   } catch (error) {
     if (error instanceof SyntaxError) return false;
