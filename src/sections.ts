@@ -36,12 +36,13 @@ function readTopLevelTags(state: TemplateParserState): void {
   for (const start of tags) {
     for (
       ;
-      comment < comments.length && comments[comment] < start;
+      comment < comments.length && (comments[comment] ?? Infinity) < start;
       comment += 2
     ) {
       const commentStart = comments[comment];
-      if (commentStart < index) continue;
       const end = comments[comment + 1];
+      if (commentStart === undefined || end === undefined) break;
+      if (commentStart < index) continue;
       appendText(index, commentStart);
       nodes.push({
         type: "Comment",

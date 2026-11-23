@@ -58,9 +58,11 @@ export function finishComponent(state: TemplateParserState): AST.Root {
     rootNodes.splice(optionsIndex, 1);
     state.root.options = readOptions(raw);
     const { nodes } = raw.fragment;
-    if (nodes.length > 0) {
+    const first = nodes[0];
+    const last = nodes.at(-1);
+    if (first && last) {
       svelte_meta_invalid_content(
-        { start: nodes[0].start, end: nodes[nodes.length - 1].end },
+        { start: first.start, end: last.end },
         raw.name,
       );
     }

@@ -382,9 +382,10 @@ function commentBefore(
   start: number,
 ): AST.Comment | null {
   const last = nodes.length - 1;
-  if (last < 0 || nodes[last].end !== start) return null;
+  if (last < 0 || nodes[last]?.end !== start) return null;
   for (let i = last; i >= 0; i--) {
     const node = nodes[i];
+    if (!node) return null;
     if (node.type === "Comment") return node;
     if (node.type !== "Text" || node.data.trim()) return null;
   }
@@ -405,7 +406,7 @@ function isExpressionValue(
 ): value is AST.ExpressionTag | [AST.ExpressionTag] {
   if (value === true) return false;
   if (!Array.isArray(value)) return true;
-  return value.length === 1 && value[0].type === "ExpressionTag";
+  return value.length === 1 && value[0]?.type === "ExpressionTag";
 }
 
 function expressionOf(value: AST.ExpressionTag | [AST.ExpressionTag]) {
@@ -710,7 +711,7 @@ function readAttributeValue(
   if (quoted) state.index++;
   else if (value.length === 0) expected_attribute_value(state.index);
 
-  return quoted || value.length > 1 || value[0].type === "Text"
+  return quoted || value.length > 1 || value[0]?.type === "Text"
     ? value
     : value[0];
 }

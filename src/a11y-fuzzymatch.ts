@@ -20,7 +20,8 @@ export function fuzzymatch(
 ): string | null {
   if (names.length === 0) return null;
   const matches = new FuzzySet(names).get(name);
-  return matches && matches[0][0] > 0.7 ? matches[0][1] : null;
+  const best = matches?.[0];
+  return best && best[0] > 0.7 ? best[1] : null;
 }
 
 function distance(a: string, b: string): number {
@@ -126,19 +127,18 @@ class FuzzySet {
     }
     const normal = Math.sqrt(sumOfSquares);
     // fuzzyset.js keeps the matches in an object, so they're in index order.
-    const scored: Match[] = [...matches]
-      .sort((a, b) => a[0] - b[0])
-      .map(([index, score]) => [
-        score / (normal * items[index][0]),
-        items[index][1],
-      ]);
+    const scored: Match[] = [];
+    for (const [index, score] of [...matches].sort((a, b) => a[0] - b[0])) {
+      const item = items[index];
+      if (item) scored.push([score / (normal * item[0]), item[1]]);
+    }
     scored.sort(descending);
     const top = scored
       .slice(0, 50)
       .map(([, match]): Match => [distance(match, normalized), match]);
     top.sort(descending);
     return top
-      .filter(([score]) => score === top[0][0])
+      .filter(([score]) => score === top[0]?.[0])
       .map(([score, match]) => [score, this.exact.get(match) ?? match]);
   }
 }

@@ -20,6 +20,6 @@ const AUTOCLOSING_CHILDREN: Record<string, string[]> = {
 export function closingTagOmitted(current: string, next: string): boolean {
   return (
     Object.hasOwn(AUTOCLOSING_CHILDREN, current) &&
-    AUTOCLOSING_CHILDREN[current].includes(next)
+    AUTOCLOSING_CHILDREN[current]?.includes(next) === true
   );
 }

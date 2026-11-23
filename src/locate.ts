@@ -33,5 +33,5 @@ export function locate(text: string, offset: number): Position {
   }
   const line = lineOf(lines.starts, offset, lines.last);
   lines.last = line;
-  return { line: line + 1, column: offset - lines.starts[line] };
+  return { line: line + 1, column: offset - (lines.starts[line] ?? 0) };
 }

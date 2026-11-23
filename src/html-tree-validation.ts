@@ -91,7 +91,7 @@ export function invalidWithAncestor(
   if (disallowed === undefined) return null;
   if ("resetBy" in disallowed && disallowed.resetBy) {
     for (let i = ancestors.length - 2; i >= 0; i--) {
-      if (ancestors[i].includes("-")) return null;
+      if (ancestors[i]?.includes("-")) return null;
       if (disallowed.resetBy.includes(ancestors[i])) return null;
     }
   }

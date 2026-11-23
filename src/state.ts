@@ -154,7 +154,7 @@ export class TemplateParserState {
   }
 
   append(node: AST.Fragment["nodes"][number]): void {
-    this.fragments[this.fragments.length - 1].nodes.push(node);
+    this.fragments.at(-1)?.nodes.push(node);
   }
 
   open(

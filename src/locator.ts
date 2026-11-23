@@ -47,12 +47,12 @@ export function lineStartsOf(text: string): number[] {
 export function lineOf(starts: number[], index: number, hint: number): number {
   let low = 0;
   let high = starts.length - 1;
-  if (index >= starts[hint]) low = hint;
+  if (index >= (starts[hint] ?? Infinity)) low = hint;
   else high = hint - 1;
-  if (low < high && index < starts[low + 1]) high = low;
+  if (low < high && index < (starts[low + 1] ?? -Infinity)) high = low;
   while (low < high) {
     const mid = (low + high + 1) >>> 1;
-    if (starts[mid] <= index) low = mid;
+    if ((starts[mid] ?? Infinity) <= index) low = mid;
     else high = mid - 1;
   }
   return low;
@@ -63,7 +63,7 @@ export function locate(index: number): Location {
   lastLine = lineOf(lineStarts, index, lastLine);
   return {
     line: lastLine + 1,
-    column: index - lineStarts[lastLine],
+    column: index - (lineStarts[lastLine] ?? 0),
     character: index,
   };
 }
@@ -87,7 +87,7 @@ export function lineBreaksBefore(offset: number): number {
   let high = breakEnds.length;
   while (low < high) {
     const mid = (low + high) >>> 1;
-    if (breakEnds[mid] <= offset) low = mid + 1;
+    if ((breakEnds[mid] ?? Infinity) <= offset) low = mid + 1;
     else high = mid;
   }
   return low;
@@ -107,7 +107,9 @@ export function lineText(line: number): string | undefined {
   }
   if (line >= lineStarts.length) return undefined;
   const end =
-    line + 1 < lineStarts.length ? lineStarts[line + 1] - 1 : source.length;
+    line + 1 < lineStarts.length
+      ? (lineStarts[line + 1] ?? source.length + 1) - 1
+      : source.length;
   return source.slice(lineStarts[line], end);
 }
 
@@ -138,6 +140,6 @@ export function createLocator(text: string): (offset: number) => Position {
   return (offset) => {
     starts ??= lineStartsOf(text);
     last = lineOf(starts, offset, last);
-    return { line: last + 1, column: offset - starts[last] };
+    return { line: last + 1, column: offset - (starts[last] ?? 0) };
   };
 }

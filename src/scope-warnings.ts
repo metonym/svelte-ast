@@ -367,7 +367,7 @@ function scanScript(program: Node, scan: Scan): void {
             }
             return;
           case "Identifier": {
-            const ifWritten = frames[frames.length - 1].get(node.name);
+            const ifWritten = frames.at(-1)?.get(node.name);
             if (
               ifWritten === undefined ||
               declared.has(node) ||
@@ -404,13 +404,13 @@ function scanScript(program: Node, scan: Scan): void {
           const { arguments: args } = unwrap(node.init) as CallExpression;
           ifWritten =
             args.length !== 1 ||
-            args[0].type === "SpreadElement" ||
+            args[0]?.type === "SpreadElement" ||
             (mayProxy(args[0] as Node) &&
               unwrap(args[0] as Node).type !== "Identifier");
         }
-        const frame = frames[frames.length - 1];
+        const frame = frames.at(-1);
         for (const id of extractIdentifiers(node.id)) {
-          frame.set(id.name, ifWritten);
+          frame?.set(id.name, ifWritten);
         }
       },
     },
@@ -708,7 +708,7 @@ export class ScopeFacts {
     const initial = unwrap(binding.initial);
     if (initial?.type !== "CallExpression") return true;
     const { arguments: args } = initial as CallExpression;
-    if (args.length !== 1 || args[0].type === "SpreadElement") return false;
+    if (args.length !== 1 || args[0]?.type === "SpreadElement") return false;
     const argument = unwrap(args[0] as Node);
     return argument.type === "Identifier" || !this.shouldProxy(argument, false);
   }
@@ -826,7 +826,7 @@ export class ScopeFacts {
     const { arguments: args } = initial as CallExpression;
     return (
       args.length === 1 &&
-      args[0].type !== "SpreadElement" &&
+      args[0]?.type !== "SpreadElement" &&
       !this.shouldProxy(args[0] as Expression, true)
     );
   }

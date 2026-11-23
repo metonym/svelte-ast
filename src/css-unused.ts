@@ -195,6 +195,7 @@ function isUnscopedPseudoClass(selector: SimpleSelector): boolean {
 /** svelte's `is_global` from css/utils.js. */
 function isGlobalRelative(relative: RelativeSelector): boolean {
   const first = relative.selectors[0];
+  if (!first) return false;
   return (
     first.type === "PseudoClassSelector" &&
     first.name === "global" &&
@@ -555,8 +556,8 @@ class UnusedSelectors {
         ) {
           const first = node.selectors[0];
           meta.isGlobalLike ||=
-            (first.type === "PseudoClassSelector" && first.name === "host") ||
-            (first.type === "PseudoElementSelector" &&
+            (first?.type === "PseudoClassSelector" && first.name === "host") ||
+            (first?.type === "PseudoElementSelector" &&
               VIEW_TRANSITION_PSEUDO_ELEMENTS.has(first.name));
         }
         meta.isGlobalLike ||=
@@ -590,6 +591,7 @@ class UnusedSelectors {
       let isGlobalBlock = false;
       for (let index = 0; index < complex.children.length; index++) {
         const child = complex.children[index];
+        if (!child) continue;
         const at = child.selectors.findIndex(isGlobalBlockSelector);
         // Every selector after :global is unscoped
         if (isGlobalBlock) this.relative(child).isGlobalLike = true;
@@ -599,9 +601,8 @@ class UnusedSelectors {
         ) {
           // `child` starts with `:global`
           meta.isGlobalBlock = isGlobalBlock = true;
-          for (let i = 1; i < child.selectors.length; i++) {
-            this.markUsedShallow(child.selectors[i]);
-          }
+          for (const selector of child.selectors.slice(1))
+            this.markUsedShallow(selector);
         }
       }
     }
@@ -653,7 +654,7 @@ class UnusedSelectors {
         hasNestingSelector(selector),
       );
       if (!hasNesting) {
-        if (selectors[0].combinator === null) {
+        if (selectors[0]?.combinator === null) {
           selectors[0] = this.copyRelative(selectors[0], {
             combinator: DESCENDANT_COMBINATOR,
           });
@@ -672,7 +673,7 @@ class UnusedSelectors {
         // not after a :global selector
         !meta.isGlobalLike &&
         !(
-          first.type === "PseudoClassSelector" &&
+          first?.type === "PseudoClassSelector" &&
           first.name === "global" &&
           first.args === null
         ) &&
@@ -733,7 +734,7 @@ class UnusedSelectors {
   ): boolean {
     let combinator: AST.CSS.Combinator | null | undefined = relative.combinator;
     if (direction === FORWARD)
-      combinator = from < to ? relatives[from].combinator : undefined;
+      combinator = from < to ? relatives[from]?.combinator : undefined;
     if (!combinator) return true;
 
     switch (combinator.name) {
@@ -868,7 +869,7 @@ class UnusedSelectors {
                 c.children.some((s) => this.isGlobal(s, r)),
               ),
             ) ||
-            rules[rules.length - 1].prelude.children.some((c) =>
+            (rules.at(-1)?.prelude.children ?? []).some((c) =>
               c.children.some((r) =>
                 r.selectors.some(
                   (s) =>
@@ -932,7 +933,7 @@ class UnusedSelectors {
             relative.selectors.length === 1
           ) {
             return this.applySelector(
-              selector.args.children[0].children,
+              selector.args.children[0]?.children ?? [],
               rule,
               element,
               BACKWARD,
@@ -1043,6 +1044,7 @@ class UnusedSelectors {
     let i = path.length;
     while (i--) {
       const parent = path[i];
+      if (!parent) continue;
       if (parent.type === "SnippetBlock") {
         const snippet = parent as AST.SnippetBlock;
         if (!seen.has(snippet)) {
@@ -1151,6 +1153,7 @@ class UnusedSelectors {
     let i = path.length;
     while (i--) {
       const parent = path[i];
+      if (!parent) continue;
       if (parent.type === "RegularElement" || parent.type === "SvelteElement")
         return parent;
     }
@@ -1334,6 +1337,7 @@ class UnusedSelectors {
     let i = direction === FORWARD ? 0 : children.length - 1;
     while (i >= 0 && i < children.length) {
       const child = children[i];
+      if (!child) break;
       if (child.type === "RegularElement") {
         result.set(child, NODE_DEFINITELY_EXISTS);
         if (adjacentOnly) break;

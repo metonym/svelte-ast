@@ -381,6 +381,7 @@ class Walker {
     if (siblings !== null && node.type !== "Comment" && node.type !== "Text") {
       for (let i = index - 1; i >= 0; i--) {
         const previous = siblings[i];
+        if (!previous) break;
         if (previous.type === "Comment") {
           codes.push(...this.codes(previous.data, previous.start + 4, ignored));
         } else if (previous.type !== "Text") {
@@ -782,7 +783,7 @@ class Walker {
     const facts = this.facts as ScopeFacts;
     for (let i = this.path.length - 2; i >= 0; i--) {
       const node = this.path[i];
-      if (FUNCTIONS.has(node.type)) break;
+      if (!node || FUNCTIONS.has(node.type)) break;
       if (node.type === "CallExpression" && i < this.path.length - 2) {
         const child = this.path[i + 1];
         if (!node.arguments.some((arg) => this.unwrap(arg) === child)) continue;
@@ -946,7 +947,7 @@ class Walker {
     const { nodes } = node.fragment;
     if (
       nodes.length === 0 ||
-      (nodes.length === 1 && nodes[0].type === "Text")
+      (nodes.length === 1 && nodes[0]?.type === "Text")
     ) {
       this.children(node, ignores);
       return;

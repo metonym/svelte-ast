@@ -68,7 +68,7 @@ export function readScript(
       if (
         !Array.isArray(value) ||
         value.length !== 1 ||
-        value[0].type !== "Text" ||
+        value[0]?.type !== "Text" ||
         value[0].data !== "module"
       ) {
         script_invalid_context(attribute);

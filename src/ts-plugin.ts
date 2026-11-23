@@ -1635,6 +1635,7 @@ export const tsPlugin = definePlugin((Base) => {
     override checkLocalExport(id: Node) {
       for (let i = this.scopeStack.length - 1; i >= 0; i--) {
         const scope = this.scopeStack[i];
+        if (!scope) continue;
         if (
           hasName(scope.tsTypes, id.name) ||
           hasName(scope.tsExportOnly, id.name)
@@ -1660,7 +1661,7 @@ export const tsPlugin = definePlugin((Base) => {
     }
 
     tsParseDecorators(allowExport: boolean) {
-      const pending = this.tsDecoratorStack[this.tsDecoratorStack.length - 1];
+      const pending = this.tsDecoratorStack.at(-1) ?? [];
       while (this.type === atType) pending.push(this.tsParseDecorator());
       if (this.type === tt._export) {
         if (!allowExport) this.unexpected();
@@ -1767,9 +1768,10 @@ export const tsPlugin = definePlugin((Base) => {
     override parseClassId(node: Node, isStatement: ClassStatement) {
       const index = this.tsDecoratorStack.length - 1;
       const decorators = this.tsDecoratorStack[index];
-      if (decorators.length > 0) {
+      const first = decorators?.[0];
+      if (decorators && first) {
         node.decorators = decorators;
-        this.tsResetStart(node, decorators[0]);
+        this.tsResetStart(node, first);
         this.tsDecoratorStack[index] = [];
       }
       if (!this.isContextual("implements") || isStatement === true) {

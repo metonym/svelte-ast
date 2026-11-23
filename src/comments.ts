@@ -95,7 +95,7 @@ export function attachComments(
   let high = comments.length;
   while (low < high) {
     const mid = (low + high) >>> 1;
-    if (comments[mid].start < fromIndex) low = mid + 1;
+    if ((comments[mid]?.start ?? Infinity) < fromIndex) low = mid + 1;
     else high = mid;
   }
   if (low >= comments.length) return;
@@ -106,12 +106,11 @@ export function attachComments(
   next = 0;
   visit(ast, undefined, false);
 
-  if (
-    next < queue.length &&
-    (queue[next].start >= ast.end || ast.type === "Program")
-  ) {
+  const after = queue[next];
+  if (after && (after.start >= ast.end || ast.type === "Program")) {
     ast.trailingComments ??= [];
-    while (next < queue.length) ast.trailingComments.push(queue[next++]);
+    ast.trailingComments.push(...queue.slice(next));
+    next = queue.length;
   }
 }
 
@@ -135,13 +134,15 @@ function visit(
   parent: Node | undefined,
   lastInBody: boolean,
 ): void {
-  while (next < queue.length && queue[next].start < node.start) {
+  for (let c = queue[next]; c && c.start < node.start; c = queue[next]) {
     node.leadingComments ??= [];
-    node.leadingComments.push(queue[next++]);
+    node.leadingComments.push(c);
+    next++;
   }
-  if (next >= queue.length) return;
+  const upcomingComment = queue[next];
+  if (!upcomingComment) return;
 
-  const upcoming = queue[next].start;
+  const upcoming = upcomingComment.start;
   if (upcoming < node.end || !gapBlocked(node.end, upcoming)) {
     const fields = fieldsOf(node);
     const listKey = LIST_KEYS.get(node.type);
@@ -169,15 +170,17 @@ function visit(
   if (parent !== undefined && node.end === parent.end) return;
 
   if (lastInBody) {
-    while (next < queue.length) {
-      if (parent && queue[next].start >= parent.end) break;
+    for (let c = queue[next]; c; c = queue[next]) {
+      if (parent && c.start >= parent.end) break;
       node.trailingComments ??= [];
-      node.trailingComments.push(queue[next++]);
+      node.trailingComments.push(c);
+      next++;
     }
-  } else if (
-    node.end <= queue[next].start &&
-    !gapBlocked(node.end, queue[next].start)
-  ) {
-    node.trailingComments = [queue[next++]];
+    return;
+  }
+  const c = queue[next];
+  if (c && node.end <= c.start && !gapBlocked(node.end, c.start)) {
+    node.trailingComments = [c];
+    next++;
   }
 }

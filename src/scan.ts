@@ -63,9 +63,10 @@ function wordKind(source: string, start: number, end: number): number {
   if (first >= 128 || end - start > LONGEST_KEYWORD) return VALUE;
   const key = keywordKey(first, end - start);
   const entries = KEYWORDS_BY_KEY[key];
-  if (entries === null) return VALUE;
+  if (!entries) return VALUE;
   for (let i = 0; i < entries.length; i++) {
-    if (source.startsWith(entries[i][0], start)) return entries[i][1];
+    const entry = entries[i];
+    if (entry && source.startsWith(entry[0], start)) return entry[1];
   }
   return VALUE;
 }

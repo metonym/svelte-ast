@@ -686,7 +686,7 @@ class Analysis implements Scopes {
     parent: AST.SvelteNode,
     scope: ScopeNode,
   ): void {
-    const root = name.split(".")[0];
+    const root = name.split(".")[0] ?? name;
     const node: Identifier = {
       type: "Identifier",
       name: root,

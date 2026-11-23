@@ -763,7 +763,7 @@ function isEventAttribute(attribute: AST.Attribute): boolean {
     (value !== true && !Array.isArray(value)) ||
     (Array.isArray(value) &&
       value.length === 1 &&
-      value[0].type === "ExpressionTag");
+      value[0]?.type === "ExpressionTag");
   return expression && attribute.name.startsWith("on");
 }
 
@@ -1008,6 +1008,7 @@ function isParent(
 ): boolean {
   for (let i = path.length - 1; i >= 0; i--) {
     const parent = path[i];
+    if (!parent) continue;
     // Unknown, so don't warn.
     if (parent.type === "SvelteElement") return true;
     if (parent.type === "RegularElement")

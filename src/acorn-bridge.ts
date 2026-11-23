@@ -88,6 +88,7 @@ export const declarations = definePlugin(
         } else {
           for (let i = this.scopeStack.length - 1; i >= 0; --i) {
             const scope = this.scopeStack[i];
+            if (!scope) continue;
             if (
               (hasName(scope.lexical, name) &&
                 !(
@@ -177,6 +178,7 @@ export const tweaks = definePlugin((Base) => {
       const top = scopes[0];
       if (
         scopes.length !== 1 ||
+        !top ||
         top.flags !== SCOPE_TOP ||
         top.var.length > 0 ||
         top.lexical.length > 0 ||

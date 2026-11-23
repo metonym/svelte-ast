@@ -232,6 +232,7 @@ class TemplateWarnings extends MarkupWalk {
     // `path` ends with `node` itself.
     for (let i = this.path.length - 2; i >= 0; i--) {
       const ancestor = this.path[i];
+      if (!ancestor) continue;
       switch (ancestor.type) {
         case "IfBlock":
         case "EachBlock":
@@ -316,7 +317,7 @@ class TemplateWarnings extends MarkupWalk {
     if (
       Array.isArray(value) &&
       value.length === 1 &&
-      value[0].type === "ExpressionTag" &&
+      value[0]?.type === "ExpressionTag" &&
       (parent.type === "Component" ||
         parent.type === "SvelteComponent" ||
         parent.type === "SvelteSelf" ||
@@ -524,7 +525,7 @@ class TemplateWarnings extends MarkupWalk {
   ): void {
     if (fragment?.nodes.length !== 1) return;
     const [text] = fragment.nodes;
-    if (text.type === "Text" && text.raw.trim() === "") {
+    if (text?.type === "Text" && text.raw.trim() === "") {
       this.warn(ignores, text, "block_empty", "Empty block");
     }
   }
@@ -553,7 +554,7 @@ class TemplateWarnings extends MarkupWalk {
     const folder = parts.at(-1);
     let name = basename.replace(".svelte", "");
     if (name === "index" && folder && folder !== "src") name = folder;
-    name = name[0].toUpperCase() + name.slice(1);
+    name = name.charAt(0).toUpperCase() + name.slice(1);
     return [this.generate(name), basename];
   }
 
