@@ -1,7 +1,7 @@
 {
   "name": "svelte-ast",
   "version": "0.12.1",
-  "description": "svelte/compiler's AST, 2.4\u00d7 faster, with zero dependencies.",
+  "description": "svelte/compiler's AST, 2.4× faster, with zero dependencies.",
   "license": "MIT",
   "author": "Eric Liu (https://github.com/metonym)",
   "repository": {
@@ -54,5 +54,8 @@
     },
     "./package.json": "./package.json"
   },
-  "sideEffects": false
+  "sideEffects": false,
+  "devDependencies": {
+    "acorn": "8.19.0"
+  }
 }
