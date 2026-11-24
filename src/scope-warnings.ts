@@ -525,12 +525,9 @@ export function needsScriptWalk(
   // svelte reads a `$derived(...)` initializer and a `$props()`
   // pattern's fallbacks one function deeper.
   const deeper: Span[] = [];
-  const all = facts.scopes as Scopes & {
-    allReferences(): Iterable<Reference>;
-  };
   const candidates: Reference[] = [];
   const exported = facts.exports(ast);
-  for (const reference of all.allReferences()) {
+  for (const reference of facts.scopes.allReferences()) {
     const { binding, parent } = reference;
     if (
       binding === null ||
@@ -557,7 +554,7 @@ export function needsScriptWalk(
     if (scope === binding.scope) candidates.push(reference);
   }
   if (candidates.length === 0) return false;
-  for (const reference of all.allReferences()) {
+  for (const reference of facts.scopes.allReferences()) {
     const { binding } = reference;
     if (binding === null) continue;
     const kind = facts.staticKind(binding);
@@ -604,12 +601,23 @@ function unwrap<T extends Node | null | undefined>(node: T): T {
   return inner;
 }
 
+// Kept out of `Scopes` because they aren't API, though
+// `analyzeScopes`' result has them.
+export interface ScopesInternal extends Scopes {
+  allReferences(): Iterable<Reference>;
+  allDeclared(): Iterable<[Identifier, Binding]>;
+  names(): Set<string>;
+}
+
+export const isScopesInternal = (scopes: Scopes): scopes is ScopesInternal =>
+  "allReferences" in scopes && "allDeclared" in scopes && "names" in scopes;
+
 /**
  * What svelte's analyzer learns of the bindings as it walks, which its
  * warnings read at the time.
  */
 export class ScopeFacts {
-  readonly scopes: Scopes;
+  readonly scopes: ScopesInternal;
   /** The kinds the rune declarators the walk has reached give. */
   readonly kinds: Map<Binding, RuneKind> = new Map<Binding, RuneKind>();
   /** Their `scope.function_depth`. */
@@ -629,7 +637,7 @@ export class ScopeFacts {
   >();
   private readonly updated = new Map<Binding, boolean>();
 
-  constructor(scopes: Scopes) {
+  constructor(scopes: ScopesInternal) {
     this.scopes = scopes;
   }
 
@@ -689,10 +697,7 @@ export class ScopeFacts {
     if (binding.kind !== "var") return binding.node;
     if (this.lastDeclared === null) {
       this.lastDeclared = new Map();
-      const all = this.scopes as Scopes & {
-        allDeclared(): Iterable<[Identifier, Binding]>;
-      };
-      for (const [node, declared] of all.allDeclared()) {
+      for (const [node, declared] of this.scopes.allDeclared()) {
         if (declared.kind !== "var") continue;
         const last = this.lastDeclared.get(declared);
         if (last === undefined || last.start < node.start) {

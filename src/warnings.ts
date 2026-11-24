@@ -5,8 +5,15 @@ import { componentWarnings } from "./component-warnings";
 import { unusedSelectors } from "./css-unused";
 import { jsWarnings } from "./js-warnings";
 import { analyzeScopes, type Scopes } from "./scope";
+import { isScopesInternal, type ScopesInternal } from "./scope-warnings";
 import { templateWarnings } from "./template-warnings";
 import type { AST } from "./types/svelte-ast";
+
+// invariant: analyzeScopes returns its analysis, which has them.
+function internal(scopes: Scopes): ScopesInternal {
+  if (isScopesInternal(scopes)) return scopes;
+  throw new Error("svelte-ast: the scope analysis has no internals");
+}
 
 /**
  * A warning svelte's compiler gives, with svelte's code, message and
@@ -104,8 +111,8 @@ export function compilerWarnings(
 ): CompilerWarning[] {
   const warnings: CompilerWarning[] = [];
   const runes = options.runes ?? false;
-  let analysis: Scopes | undefined;
-  const scopes = () => (analysis ??= analyzeScopes(ast));
+  let analysis: ScopesInternal | undefined;
+  const scopes = () => (analysis ??= internal(analyzeScopes(ast)));
   const push = (
     node: { start: number; end: number },
     code: string,

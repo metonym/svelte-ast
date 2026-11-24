@@ -6,7 +6,8 @@
 
 import { invalidWithAncestor, invalidWithParent } from "./html-tree-validation";
 import { type MarkupHooks, MarkupWalk } from "./markup-walk";
-import type { Binding, Scope, Scopes } from "./scope";
+import type { Binding, Scope } from "./scope";
+import type { ScopesInternal } from "./scope-warnings";
 import { skipTypeWrappers } from "./skip-type-wrappers";
 import type {
   Expression,
@@ -30,7 +31,7 @@ interface TemplateWarningsOptions {
   source: string;
   filename: string | undefined;
   customElement: boolean;
-  scopes: () => Scopes;
+  scopes: () => ScopesInternal;
 }
 
 const link = (code: string) => `\nhttps://svelte.dev/e/${code}`;
@@ -566,9 +567,7 @@ class TemplateWarnings extends MarkupWalk {
     const base = preferred
       .replace(NOT_IDENTIFIER, "_")
       .replace(LEADING_DIGIT, "_");
-    const taken = (
-      this.options.scopes() as Scopes & { names(): Set<string> }
-    ).names();
+    const taken = this.options.scopes().names();
     // Each `{#each}` takes a `$$index` name as svelte reads the markup.
     const eaches = countEaches(this.ast.fragment);
     for (let i = 0; i < eaches; i++) {

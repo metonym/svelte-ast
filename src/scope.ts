@@ -561,7 +561,7 @@ class Analysis implements Scopes {
    * The names svelte's `Scope#generate` avoids: every value any scope
    * declares, without type-only imports, and every name a value
    * reference uses, globals and stores too. Internal: for
-   * `svelte-ast/warnings`, which casts to it.
+   * `svelte-ast/warnings`, through `ScopesInternal`.
    */
   names(): Set<string> {
     const names = new Set<string>();
@@ -587,7 +587,7 @@ class Analysis implements Scopes {
 
   /**
    * Every reference, values and types. Internal: for `svelte-ast/warnings`,
-   * which casts to it.
+   * through `ScopesInternal`.
    */
   allReferences(): Iterable<Reference> {
     return this.references.values();
@@ -595,7 +595,7 @@ class Analysis implements Scopes {
 
   /**
    * Every declaring identifier, with its binding. Internal: for
-   * `svelte-ast/warnings`, which casts to it.
+   * `svelte-ast/warnings`, through `ScopesInternal`.
    */
   allDeclared(): Iterable<[Identifier, Binding]> {
     return this.declared.entries();

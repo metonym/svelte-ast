@@ -11,7 +11,6 @@ import { extractIdentifiers } from "./extract-identifiers";
 import { isTypeScript } from "./markup";
 import { slotOf } from "./markup-walk";
 import { fieldsOf, isNode } from "./nodes";
-import type { Scopes } from "./scope";
 import {
   mayHaveScopeWarnings,
   needsMarkupWalk,
@@ -19,6 +18,7 @@ import {
   nonReactiveUpdates,
   type RuneKind,
   ScopeFacts,
+  type ScopesInternal,
   storeRuneConflicts,
   unusedExports,
 } from "./scope-warnings";
@@ -191,7 +191,7 @@ interface JsWarningsOptions {
   runes: boolean;
   /** Whether the component compiles as a custom element. */
   customElement: boolean;
-  scopes: () => Scopes;
+  scopes: () => ScopesInternal;
 }
 
 export function jsWarnings(
@@ -462,7 +462,8 @@ class Walker {
         this.text(node, siblings, ignores);
         return;
       case "Identifier":
-        if (this.facts !== null) this.identifier(node, parent, ignores);
+        if (this.facts !== null)
+          this.identifier(this.facts, node, parent, ignores);
         return;
       case "ExportSpecifier":
         // In runes mode, `export { x }` in the instance makes `x` reassigned.
@@ -481,7 +482,7 @@ class Walker {
         return;
       case "VariableDeclarator":
         if (this.facts !== null && this.runes) {
-          this.declarator(node, ignores);
+          this.declarator(this.facts, node, ignores);
           return;
         }
         break;
@@ -496,7 +497,8 @@ class Walker {
         }
         break;
       case "ExpressionStatement":
-        if (this.facts !== null) this.componentCreation(node, ignores);
+        if (this.facts !== null)
+          this.componentCreation(this.facts, node, ignores);
         break;
       case "FunctionDeclaration":
       case "FunctionExpression":
@@ -733,11 +735,11 @@ class Walker {
    * mode, reactive_declaration_module_script_dependency in legacy mode.
    */
   private identifier(
+    facts: ScopeFacts,
     node: Identifier,
     parent: Node | null,
     ignores: ReadonlySet<string>,
   ): void {
-    const facts = this.facts as ScopeFacts;
     facts.ignores.set(node, ignores);
     // Its reference, if it's one: the scopes see past TypeScript's wrappers.
     const binding = facts.referenced(node);
@@ -759,7 +761,7 @@ class Walker {
         ignores,
         node,
         "state_referenced_locally",
-        `This reference only captures the initial value of \`${node.name}\`. Did you mean to reference it inside a ${this.capture()} instead?`,
+        `This reference only captures the initial value of \`${node.name}\`. Did you mean to reference it inside a ${this.capture(facts)} instead?`,
       );
     } else if (
       this.reactive &&
@@ -780,8 +782,7 @@ class Walker {
    * `$state(f(x))`. svelte doesn't look at the identifier itself, so
    * `$state(x)` gives `closure`.
    */
-  private capture(): string {
-    const facts = this.facts as ScopeFacts;
+  private capture(facts: ScopeFacts): string {
     for (let i = this.path.length - 2; i >= 0; i--) {
       const node = this.path[i];
       if (!node || FUNCTIONS.has(node.type)) break;
@@ -797,10 +798,10 @@ class Walker {
 
   /** svelte's `VariableDeclarator` visitor in runes mode. */
   private declarator(
+    facts: ScopeFacts,
     node: VariableDeclarator,
     ignores: ReadonlySet<string>,
   ): void {
-    const facts = this.facts as ScopeFacts;
     const rune = facts.rune(node.init);
     if (
       rune === "$state" ||
@@ -818,7 +819,7 @@ class Walker {
       }
     }
     if (rune === "$props") {
-      this.props(node.id, ignores);
+      this.props(facts, node.id, ignores);
       // svelte reads a prop's fallback as in a function.
       this.functionDepth++;
       this.child(node.id, node, ignores);
@@ -834,10 +835,10 @@ class Walker {
    * custom_element_props_identifier.
    */
   private props(
+    facts: ScopeFacts,
     id: VariableDeclarator["id"],
     ignores: ReadonlySet<string>,
   ): void {
-    const facts = this.facts as ScopeFacts;
     let rest: Span | null = null;
     if (id.type === "Identifier") {
       const binding = facts.scopes.bindingOf(id);
@@ -895,6 +896,7 @@ class Walker {
    * default export.
    */
   private componentCreation(
+    facts: ScopeFacts,
     node: ExpressionStatement,
     ignores: ReadonlySet<string>,
   ): void {
@@ -918,7 +920,7 @@ class Walker {
     ) {
       return;
     }
-    const binding = (this.facts as ScopeFacts).referenced(callee);
+    const binding = facts.referenced(callee);
     const declaration = binding?.initial;
     if (
       binding?.kind === "import" &&
