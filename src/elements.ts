@@ -237,6 +237,7 @@ function createElement(
   start: number,
   name: string,
 ): AST.ElementLike {
+  // eslint-disable-next-line typescript/consistent-type-assertions -- a node in the making: openElement sets its attributes and fragment next
   return { type, start, end: -1, name } as AST.ElementLike;
 }
 
@@ -640,6 +641,7 @@ function directive(
   if (type === "StyleDirective") {
     node.modifiers = modifiers;
     node.value = value;
+    // eslint-disable-next-line typescript/consistent-type-assertions -- built field by field for its type, as svelte's parser does
     return node as AST.Directive;
   }
 
@@ -670,6 +672,7 @@ function directive(
       name,
     };
   }
+  // eslint-disable-next-line typescript/consistent-type-assertions -- built field by field for its type, as svelte's parser does
   return node as AST.Directive;
 }
 

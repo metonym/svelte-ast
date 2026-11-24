@@ -567,12 +567,13 @@ class Analysis implements Scopes {
     const names = new Set<string>();
     for (const scope of this.scopes) {
       for (const [name, binding] of scope.declarations) {
-        const specifier = binding.declaration as { importKind?: string };
-        const declaration = binding.initial as { importKind?: string } | null;
+        const { declaration, initial } = binding;
         if (
           binding.kind === "import" &&
-          (specifier.importKind === "type" ||
-            declaration?.importKind === "type")
+          ((declaration.type === "ImportSpecifier" &&
+            declaration.importKind === "type") ||
+            (initial?.type === "ImportDeclaration" &&
+              initial.importKind === "type"))
         ) {
           continue;
         }

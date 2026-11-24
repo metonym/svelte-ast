@@ -9,13 +9,7 @@ import { type MarkupHooks, MarkupWalk } from "./markup-walk";
 import type { Binding, Scope } from "./scope";
 import type { ScopesInternal } from "./scope-warnings";
 import { skipTypeWrappers } from "./skip-type-wrappers";
-import type {
-  Expression,
-  Identifier,
-  ImportDeclaration,
-  ImportSpecifier,
-  Pattern,
-} from "./types/estree";
+import type { Expression, Identifier, Pattern } from "./types/estree";
 import type { AST } from "./types/svelte-ast";
 
 type Node = AST.SvelteNode;
@@ -478,10 +472,10 @@ class TemplateWarnings extends MarkupWalk {
     ignores: ReadonlySet<string>,
   ): void {
     if (this.restEaches === 0 || ignores.has("bind_invalid_each_rest")) return;
-    let left = skipTypeWrappers(node.expression);
+    let left: AST.SvelteNode = skipTypeWrappers(node.expression);
     if (left.type === "SequenceExpression") return;
     while (left.type === "MemberExpression") {
-      left = skipTypeWrappers(left.object as Expression);
+      left = skipTypeWrappers(left.object);
     }
     if (left.type !== "Identifier") return;
     const binding = this.resolve(left);
@@ -551,7 +545,7 @@ class TemplateWarnings extends MarkupWalk {
       return ["Self", "Self.svelte"];
     }
     const parts = filename.split(PATH_SEPARATOR);
-    const basename = parts.pop() as string;
+    const basename = parts.pop() ?? filename;
     const folder = parts.at(-1);
     let name = basename.replace(".svelte", "");
     if (name === "index" && folder && folder !== "src") name = folder;
@@ -613,8 +607,10 @@ function isCustomElement(node: AST.RegularElement): boolean {
 function isTypeOnly(binding: Binding): boolean {
   return (
     binding.kind === "import" &&
-    ((binding.initial as ImportDeclaration | null)?.importKind === "type" ||
-      (binding.declaration as ImportSpecifier).importKind === "type")
+    ((binding.initial?.type === "ImportDeclaration" &&
+      binding.initial.importKind === "type") ||
+      (binding.declaration.type === "ImportSpecifier" &&
+        binding.declaration.importKind === "type"))
   );
 }
 
@@ -696,7 +692,7 @@ function countEaches(fragment: AST.Fragment): number {
           break;
         default:
           if ("fragment" in node && node.fragment) {
-            visit((node.fragment as AST.Fragment).nodes);
+            visit(node.fragment.nodes);
           }
       }
     }

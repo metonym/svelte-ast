@@ -666,7 +666,7 @@ function checkElement(
           warn(
             autocomplete,
             "a11y_autocomplete_valid",
-            a11y_autocomplete_valid(value as string, typeValue ?? "..."),
+            a11y_autocomplete_valid(String(value), typeValue ?? "..."),
           );
         }
       }
@@ -775,13 +775,13 @@ function list(strings: readonly string[], conjunction = "or"): string {
 }
 
 const isPresentationRole = (role: string | null | undefined) =>
-  presentationRoles.has(role as string);
+  role != null && presentationRoles.has(role);
 const isNonInteractiveRole = (role: string | null | undefined) =>
-  nonInteractiveRoles.has(role as string);
+  role != null && nonInteractiveRoles.has(role);
 const isInteractiveRole = (role: string | null | undefined) =>
-  interactiveRoles.has(role as string);
+  role != null && interactiveRoles.has(role);
 const isAbstractRole = (role: string | null | undefined) =>
-  abstractRoles.has(role as string);
+  role != null && abstractRoles.has(role);
 
 function isHiddenFromScreenReader(
   tagName: string,
