@@ -1,6 +1,6 @@
-// Generated from @types/estree 1.0.9 (MIT,
-// Copyright (c) Microsoft Corporation), with svelte-ast's offsets and the
-// TypeScript plugin's nodes and fields. Do not edit.
+// Generated from @types/estree 1.0.10 (MIT, Copyright (c) Microsoft
+// Corporation), with svelte-ast's offsets and the TypeScript plugin's
+// nodes and fields. Do not edit.
 import type {
   Decorator,
   TSAsExpression,
@@ -107,10 +107,18 @@ export interface Position {
   column: number;
 }
 
+export interface ProgramBodyMap {
+  Directive: Directive;
+  ModuleDeclaration: ModuleDeclaration;
+  Statement: Statement;
+}
+
+export type ProgramBody = ProgramBodyMap[keyof ProgramBodyMap];
+
 export interface Program extends Omit<BaseNode, "leadingComments"> {
   type: "Program";
   sourceType: "script" | "module";
-  body: Array<Directive | Statement | ModuleDeclaration>;
+  body: ProgramBody[];
   comments?: Comment[] | undefined;
   /**
    * In a component's `<script>`, an HTML comment right before the tag

@@ -1,5 +1,4 @@
-// Generated from svelte 5.58.0's types (MIT).
-// Do not edit.
+// Generated from svelte 5.59.1's types (MIT). Do not edit.
 import type {
   ArrayExpression,
   ArrowFunctionExpression,
@@ -63,6 +62,7 @@ export declare namespace AST {
     preserveWhitespace?: boolean;
     namespace?: Namespace;
     css?: "injected";
+    customRenderer?: string | null;
     customElement?: {
       tag?: string;
       shadow?: "open" | "none" | ObjectExpression | undefined;

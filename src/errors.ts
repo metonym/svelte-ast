@@ -1,5 +1,4 @@
-// Generated from svelte 5.58.0's errors.js.
-// Do not edit.
+// Generated from svelte 5.59.1's errors.js. Do not edit.
 import { type NodeLike, ParseError } from "./parse-error";
 
 export function attribute_duplicate(node: NodeLike): never {

@@ -1,5 +1,5 @@
-// Generated from svelte 5.58.0's a11y
-// constants, aria-query and axobject-query. Do not edit.
+// Generated from svelte 5.59.1's a11y constants, aria-query and
+// axobject-query. Do not edit.
 
 export const a11yDistractingElements = ["blink", "marquee"] as const;
 

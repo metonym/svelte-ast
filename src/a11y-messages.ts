@@ -1,5 +1,4 @@
-// Generated from svelte 5.58.0's warnings.js.
-// Do not edit.
+// Generated from svelte 5.59.1's warnings.js. Do not edit.
 
 export function a11y_accesskey(): string {
   return "Avoid using accesskey\nhttps://svelte.dev/e/a11y_accesskey";

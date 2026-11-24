@@ -123,6 +123,29 @@ const READERS = new Map<
       options.css = "injected";
     },
   ],
+  [
+    "customRenderer",
+    (options, attribute) => {
+      const { value } = attribute;
+      const chunk = Array.isArray(value) ? value[0] : value;
+      const single = !Array.isArray(value) || value.length === 1;
+      if (chunk !== undefined && chunk !== true && single) {
+        if (chunk.type === "Text") {
+          options.customRenderer = chunk.data;
+          return;
+        }
+        const { expression } = chunk;
+        if (
+          expression.type === "Literal" &&
+          (typeof expression.value === "string" || expression.value === null)
+        ) {
+          options.customRenderer = expression.value;
+          return;
+        }
+      }
+      svelte_options_invalid_attribute_value(attribute, "a string or null");
+    },
+  ],
   ["tag", (_, attribute) => svelte_options_deprecated_tag(attribute)],
   [
     "customElement",
