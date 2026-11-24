@@ -18,6 +18,7 @@ export function parseImportsExportsWith(
     comments: false,
     root: { comments: [] },
   };
+  // eslint-disable-next-line typescript/consistent-type-assertions -- scan parses only the import and export statements
   return parseStatementsAt(context, source, (parseAt) =>
     scan(source, options.localExports ?? true, parseAt),
   ) as ModuleDeclaration[];

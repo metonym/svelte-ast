@@ -1800,6 +1800,7 @@ export const tsPlugin: Plugin = definePlugin((Base) => {
             "Decorators must be attached to a class element.",
           );
         }
+        // eslint-disable-next-line typescript/consistent-type-assertions -- acorn types parseClassElement's node loosely
         const element = this.parseClassElement(constructorAllowsSuper) as Node;
         element.decorators = decorators;
         const [first] = decorators;

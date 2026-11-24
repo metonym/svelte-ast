@@ -156,9 +156,11 @@ export const tweaks: Plugin = definePlugin((Base) => {
           : 1;
       }
       this.type = tokTypes.eof;
+      // eslint-disable-next-line typescript/consistent-type-assertions -- acorn's own reset sets null where its types say string
       this.value = null as unknown as string;
       this.start = this.end = pos;
       this.startLoc = this.endLoc = this.curPosition();
+      // eslint-disable-next-line typescript/consistent-type-assertions -- acorn's own reset sets null where its types say Position
       this.lastTokEndLoc = this.lastTokStartLoc = null as unknown as Position;
       this.lastTokStart = this.lastTokEnd = pos;
       const context = this.context;
@@ -289,6 +291,7 @@ interface ParseContext {
 const REGEX_POSITION_SUFFIX = / \(\d+:\d+\)$/;
 
 function estree<T extends Node>(node: AcornNode): T {
+  // eslint-disable-next-line typescript/consistent-type-assertions -- the one place acorn's node becomes the ESTree type it is
   return node as unknown as T;
 }
 
@@ -525,7 +528,7 @@ export function parseStatementsAt(
     node.body = body;
     return parser.finishNode(node, "Program");
   });
-  return estree<Program>(program).body as Array<Statement | ModuleDeclaration>;
+  return estree<Program>(program).body;
 }
 
 function removeParens<T extends Node>(node: T): T;

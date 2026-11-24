@@ -27,20 +27,24 @@ export function entitySupport(names: () => EntityNames): EntitySupport {
   return internals;
 }
 
+const isTypeScriptInternals = (
+  support: TypeScriptSupport,
+): support is TypeScriptInternals => "parser" in support;
+
+const isEntityInternals = (
+  support: EntitySupport,
+): support is EntityInternals => "names" in support;
+
 export function typeScriptParser(
   support: TypeScriptSupport | undefined,
 ): ParserConstructor | undefined {
-  return support && "parser" in support
-    ? (support as TypeScriptInternals).parser
-    : undefined;
+  return support && isTypeScriptInternals(support) ? support.parser : undefined;
 }
 
 export function entityNamesOf(
   support: EntitySupport | undefined,
 ): (() => EntityNames) | undefined {
-  return support && "names" in support
-    ? (support as EntityInternals).names
-    : undefined;
+  return support && isEntityInternals(support) ? support.names : undefined;
 }
 
 export function missingTypeScript(): never {

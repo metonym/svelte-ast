@@ -141,7 +141,8 @@ const keysByType = new Map<string, ReadonlySet<string>>();
 function fieldKeys(type: string): ReadonlySet<string> {
   let keys = keysByType.get(type);
   if (keys === undefined) {
-    const list = (valueVisitorKeys as VisitorKeys)[type];
+    const byType: VisitorKeys = valueVisitorKeys;
+    const list = byType[type];
     if (list === undefined) throw new Error(`unknown node type: ${type}`);
     keys = new Set(list);
     keysByType.set(type, keys);
@@ -180,11 +181,6 @@ function isWordCode(code: number): boolean {
     code === 95 ||
     code === 36
   );
-}
-
-interface JsComment {
-  value: string;
-  start?: number;
 }
 
 interface JsWarningsOptions {
@@ -372,8 +368,9 @@ class Walker {
     const fields = fieldsOf(node);
     if (this.typescript && typeOnly(node)) return;
     const wrapped = TYPE_WRAPPERS[node.type];
-    if (wrapped !== undefined && this.typescript) {
-      this.visit(fields[wrapped] as Node, parent, siblings, index, ignored);
+    const inner = wrapped === undefined ? undefined : fields[wrapped];
+    if (this.typescript && isNode(inner)) {
+      this.visit(inner, parent, siblings, index, ignored);
       return;
     }
 
@@ -389,11 +386,12 @@ class Walker {
         }
       }
     } else {
-      const comments = fields.leadingComments as JsComment[] | undefined;
+      const comments =
+        "leadingComments" in node ? node.leadingComments : undefined;
       if (comments) {
         for (const comment of comments) {
-          const offset =
-            comment.start === undefined ? undefined : comment.start + 2;
+          const start = "start" in comment ? comment.start : undefined;
+          const offset = start === undefined ? undefined : start + 2;
           codes.push(...this.codes(comment.value, offset, ignored));
         }
       }
@@ -409,12 +407,12 @@ class Walker {
   private unwrap(node: Node): Node {
     if (!this.typescript) return node;
     let inner = node;
-    let wrapped = TYPE_WRAPPERS[inner.type];
-    while (wrapped !== undefined) {
-      inner = fieldsOf(inner)[wrapped] as Node;
-      wrapped = TYPE_WRAPPERS[inner.type];
+    for (;;) {
+      const wrapped = TYPE_WRAPPERS[inner.type];
+      const next = wrapped === undefined ? undefined : fieldsOf(inner)[wrapped];
+      if (!isNode(next)) return inner;
+      inner = next;
     }
-    return inner;
   }
 
   /** Visits `node`'s children with `functionDepth` one more. */

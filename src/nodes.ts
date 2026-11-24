@@ -20,6 +20,7 @@ export function isNode(value: unknown): value is Node {
 }
 
 export function fieldsOf(node: object): Record<string, unknown> {
+  // eslint-disable-next-line typescript/consistent-type-assertions -- reads a node's fields by name, which no one node type lists
   return node as Record<string, unknown>;
 }
 

@@ -269,8 +269,10 @@ function readCustomElement(
   }
 
   const extend = properties.get("extend");
-  if (extend)
+  if (extend) {
+    // eslint-disable-next-line typescript/consistent-type-assertions -- compat: svelte keeps any expression; the type names the two it documents
     customElement.extend = extend as NonNullable<CustomElement["extend"]>;
+  }
 
   return customElement;
 }

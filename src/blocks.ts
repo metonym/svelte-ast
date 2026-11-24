@@ -267,6 +267,9 @@ function openSnippet(state: TemplateParserState, start: number): void {
       end: -1,
       expression: id,
       typeParams,
+      // compat: svelte leaves it undefined when the parameters don't parse
+      // as an arrow function's.
+      // eslint-disable-next-line typescript/consistent-type-assertions -- svelte's shape, which its type doesn't allow
       parameters: (node.type === "ArrowFunctionExpression"
         ? node.params
         : undefined) as Pattern[],

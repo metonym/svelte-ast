@@ -46,7 +46,7 @@ function levenshtein(a: string, b: string): number {
       current[j] = value;
     }
   }
-  return current.pop() as number;
+  return current.at(-1) ?? 0;
 }
 
 function grams(value: string, size: number): string[] {

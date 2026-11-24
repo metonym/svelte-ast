@@ -419,12 +419,15 @@ export function definePlugin(
   plugin: (Base: ParserConstructor) => ParserConstructor,
 ): Plugin {
   return (BaseParser) =>
+    // eslint-disable-next-line typescript/consistent-type-assertions -- acorn's Parser type omits the internals a plugin uses
     plugin(
+      // eslint-disable-next-line typescript/consistent-type-assertions -- the same class, typed with them
       BaseParser as unknown as ParserConstructor,
     ) as unknown as typeof Parser;
 }
 
 export function extendParser(...plugins: Plugin[]): ParserConstructor {
+  // eslint-disable-next-line typescript/consistent-type-assertions -- acorn's Parser type omits the internals the plugins use
   return Parser.extend(...plugins) as unknown as ParserConstructor;
 }
 

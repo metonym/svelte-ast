@@ -26,7 +26,8 @@ export function locate(text: string, offset: number): Position {
   let lines = linesByText.get(text);
   if (lines === undefined) {
     if (linesByText.size >= MAX_TEXTS) {
-      linesByText.delete(linesByText.keys().next().value as string);
+      const oldest = linesByText.keys().next();
+      if (!oldest.done) linesByText.delete(oldest.value);
     }
     lines = { starts: lineStartsOf(text), last: 0 };
     linesByText.set(text, lines);
