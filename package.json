@@ -1,6 +1,6 @@
 {
   "name": "svelte-ast",
-  "version": "0.15.0",
+  "version": "0.15.1",
   "description": "svelte/compiler's AST, 2.4× faster, with zero dependencies.",
   "license": "MIT",
   "author": "Eric Liu (https://github.com/metonym)",
