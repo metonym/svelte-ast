@@ -36,9 +36,8 @@ such as documentation and type generators that read a component's props,
 events and slots.
 They need only the AST, but parse every component in a library,
 often on every change.
-[sveld](https://github.com/carbon-design-system/sveld),
-which generates TypeScript definitions and documentation for Svelte
-components, uses it.
+[sveld](https://github.com/carbon-design-system/sveld), which generates
+TypeScript definitions and documentation for Svelte components, uses it.
 
 | Function | For | Import from |
 |:---|:---|:---|
@@ -281,8 +280,8 @@ and each specifier has kind `local`,
 with `local` the binding in this module.
 Those are the `ExportNamedDeclaration`s without a declaration that
 `parseImportsExports` returns with `localExports: true`;
-`export const a`, `export function b` and `export default` still aren't
-returned.
+`export const a`, `export function b` and `export default` still
+aren't returned.
 A module that ends with an export list is read to its end.
 
 ```ts
@@ -320,8 +319,8 @@ and `end` is after the last name; for `export *`, after the `*`.
 From `svelte-ast/lexer`, and also `svelte-ast`.
 A module's `import(…)` and `require(…)` calls
 and Vite's `import.meta.glob(…)`, at any depth, in source order,
-read without parsing, e.g. to follow the lazily loaded part of a module
-graph.
+read without parsing, e.g. to follow the lazily loaded part of a
+module graph.
 Unlike a regular expression, it never matches in a comment, a string,
 a template or a regular expression, and it tells a literal argument from
 a computed one.
@@ -350,16 +349,16 @@ Where `parseModule` accepts the module,
 the calls are its `ImportExpression`s,
 its calls of an identifier `require`, `new require(…)` included,
 and of `import.meta.glob`, and in TypeScript also its `import("a")`
-types, as in `typeof import("a")`, and the `require("a")` of
-`import a = require("a")`.
+types, as in `typeof import("a")`, and the `require("a")`
+of `import a = require("a")`.
 A method named `import` or `require`, such as `{ import() {} }`,
 isn't a call, and neither are `a.require(…)`,
 `require?.(…)` or `(require)(…)`.
 It doesn't check syntax and never throws.
 It matched `parseModule` on all 33,001 modules and component scripts it
 accepts from the projects under
-[Parity and performance](#parity-and-performance),
-svelte's tests and TypeScript's conformance tests.
+[Parity and performance](#parity-and-performance), svelte's tests
+and TypeScript's conformance tests.
 
 ### `lexComponent(source) => LexedComponent`
 
@@ -423,8 +422,8 @@ From `svelte-ast/lexer`, and also `svelte-ast`.
 A module's string literals and the text of its template literals,
 in source order, read without parsing,
 for a tool that only needs a script's strings,
-such as one that collects the class names a component's script can
-produce.
+such as one that collects the class names a component's script
+can produce.
 With `parse(source, { script: false })` for the markup,
 it reads a component's scripts in a fraction of the time:
 on Carbon's 258 components, `parse` with `comments: false` takes
@@ -446,9 +445,8 @@ or a label, reads as a division, as does `/` after a variable named
 `of`, and a quote in that regular expression starts a string.
 It matched `parseModule` on all 21,443 modules and component scripts it
 accepts from the projects under
-[Parity and performance](#parity-and-performance),
-and on all 9,647 of TypeScript's conformance tests that `parseModule`
-accepts.
+[Parity and performance](#parity-and-performance), and on all 9,647 of
+TypeScript's conformance tests that `parseModule` accepts.
 
 ```ts
 import { lexStrings } from "svelte-ast/lexer";
@@ -575,8 +573,8 @@ an expression, a `Program`, a `<style>`'s rules.
 It never descends into `loc`, comments or strings,
 and throws on a node type it doesn't know.
 A component's sections are visited in scope order, `module`, `instance`,
-`fragment`, then `css`, and a template literal's `quasis` before its
-`expressions`.
+`fragment`, then `css`, and a template literal's `quasis` before
+its `expressions`.
 `<svelte:options>`'s attributes aren't visited;
 read them from `ast.options?.attributes`.
 In `import { a }` and `export { a }`, one `Identifier` is both names,
@@ -650,8 +648,8 @@ many times lists each node's children once.
 ASTs don't change after `parse`, so the cache stays right
 unless you change one, for instance by replacing a node with `walk`;
 don't change the array.
-Both take `keys` as `walk` does and throw on a node type it has no entry
-for.
+Both take `keys` as `walk` does and throw on a node type it has no
+entry for.
 
 ```ts
 import { forEachChild, valueVisitorKeys } from "svelte-ast/walk";
@@ -828,8 +826,8 @@ Names in TypeScript's types aren't references,
 and `type` and `interface` declare nothing;
 it skips them with `valueVisitorKeys`.
 Enums, enum members and namespaces are declared.
-It doesn't change the AST, and takes less than half as long as parsing
-it.
+It doesn't change the AST, and takes less than half as long as
+parsing it.
 
 | Option | Default | Description |
 |:---|:---|:---|
@@ -953,8 +951,8 @@ Its options:
   `<svelte:options customElement>` counts without it,
   except for `options_missing_custom_element`.
   A custom element gets no `slot_element_deprecated`.
-- `runes`: as for
-  [`a11yWarnings`](#a11ywarningsast-options--a11ywarning).
+- `runes`: as
+  for [`a11yWarnings`](#a11ywarningsast-options--a11ywarning).
 
 ```ts
 import { isRunesMode, parse } from "svelte-ast";
@@ -984,8 +982,8 @@ After a match, its next check starts part way into the next string,
 so svelte can miss one, and the miss carries over to the next component
 it compiles.
 svelte-ast follows this within a component,
-but starts each component afresh, as svelte does for the first one it
-compiles.
+but starts each component afresh, as svelte does for the first one
+it compiles.
 svelte throws on an `unknown_code` or `legacy_code` in a comment before
 a `<script>`; svelte-ast gives no warning for it.
 

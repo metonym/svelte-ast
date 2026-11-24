@@ -79,8 +79,8 @@ function readTypeAnnotation(
     type: "TSTypeAnnotation",
     start,
     end: state.index,
-    // compat: in JavaScript, `_ as T` isn't one, and svelte leaves it
-    // undefined.
+    // compat: in JavaScript, `_ as T` isn't one, and svelte leaves
+    // it undefined.
     // eslint-disable-next-line typescript/consistent-type-assertions -- svelte's shape, which its type doesn't allow
     typeAnnotation: (expression.type === "TSAsExpression"
       ? expression.typeAnnotation

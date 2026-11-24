@@ -16,8 +16,8 @@ interface ImplicitClose {
 }
 
 /**
- * svelte's `svelte_element_invalid_this`: `this="…"` on a
- * `<svelte:element>`.
+ * svelte's `svelte_element_invalid_this`: `this="…"` on
+ * a `<svelte:element>`.
  */
 interface InvalidThis {
   code: "svelte_element_invalid_this";

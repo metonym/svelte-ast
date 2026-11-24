@@ -30,8 +30,8 @@ export interface ModuleParserSupport {
 /** The parsers {@link createModuleParser} returns. */
 export interface ModuleParser {
   /**
-   * `parseModule` from `svelte-ast`, with only what the parser was created
-   * with.
+   * `parseModule` from `svelte-ast`, with only what the parser was
+   * created with.
    */
   parseModule(source: string, options?: ParseModuleOptions): Program;
   /**

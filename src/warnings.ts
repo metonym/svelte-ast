@@ -16,8 +16,8 @@ function internal(scopes: Scopes): ScopesInternal {
 }
 
 /**
- * A warning svelte's compiler gives, with svelte's code, message and
- * position.
+ * A warning svelte's compiler gives, with svelte's code, message
+ * and position.
  */
 export interface CompilerWarning {
   /** svelte's code, such as `"css_unused_selector"`. */
@@ -45,8 +45,8 @@ export interface CompilerWarningsOptions {
   /**
    * Whether the component compiles as a custom element, as svelte's
    * `customElement` option. `<svelte:options customElement>` counts
-   * without it, except for `options_missing_custom_element`. Default
-   * `false`.
+   * without it, except for `options_missing_custom_element`.
+   * Default `false`.
    */
   customElement?: boolean;
   /**
@@ -86,8 +86,8 @@ export interface CompilerWarningsOptions {
  * `script_context_deprecated`, `script_unknown_attribute`,
  * `slot_element_deprecated`, `state_referenced_locally`,
  * `store_rune_conflict`, `svelte_component_deprecated`,
- * `svelte_element_invalid_this`, `svelte_self_deprecated` and
- * `unknown_code`.
+ * `svelte_element_invalid_this`, `svelte_self_deprecated`
+ * and `unknown_code`.
  *
  * With `a11y: true`, it gives the `a11y_…` ones too.
  *

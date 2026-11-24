@@ -18,8 +18,8 @@ import type { AST } from "./types/svelte-ast";
 import { valueVisitorKeys, walk } from "./walk";
 
 type Node = AST.SvelteNode;
-// An `export default`'s function or class may be unnamed, so it isn't a
-// SvelteNode.
+// An `export default`'s function or class may be unnamed, so it isn't
+// a SvelteNode.
 type TopLevel =
   Node | MaybeNamedFunctionDeclaration | MaybeNamedClassDeclaration;
 interface Span {
@@ -35,8 +35,8 @@ export type RuneKind =
 const link = (code: string) => `\nhttps://svelte.dev/e/${code}`;
 const NO_IGNORES: ReadonlySet<string> = new Set();
 
-// The runes, without `$`, that a local binding can turn into a store
-// subscription.
+// The runes, without `$`, that a local binding can turn into a
+// store subscription.
 const RUNE_STORE = /\$(?:state|derived|props|bindable|effect|inspect|host)\b/;
 const LEGACY_PROP = /\bexport\b/;
 const LABEL = /\$\s*:/;
@@ -213,8 +213,8 @@ class Gate {
   private markupWritten: Set<string> | null | undefined;
 
   /**
-   * Whether `name` may be reassigned: a script's syntax, or the markup's
-   * source.
+   * Whether `name` may be reassigned: a script's syntax, or the
+   * markup's source.
    */
   private mayBeWritten(name: string): boolean {
     if (this.markupWritten === undefined) {
@@ -234,8 +234,8 @@ class Gate {
   }
 
   /**
-   * store_rune_conflict: `$x(...)` with a top-level `x` that isn't
-   * `x = $x(...)`.
+   * store_rune_conflict: `$x(...)` with a top-level `x` that
+   * isn't `x = $x(...)`.
    */
   storeRuneConflict(): boolean {
     if (!RUNE_STORE.test(this.source)) return false;
@@ -404,8 +404,8 @@ function scanScript(program: Node, scan: Scan): void {
       leave(node) {
         if (opened.has(node)) frames.pop();
         if (node.type !== "VariableDeclarator") return;
-        // svelte gives the binding its rune's kind as its walk reaches the
-        // declarator.
+        // svelte gives the binding its rune's kind as its walk reaches
+        // the declarator.
         const rune = staticRune(node.init);
         if (rune === null || !STATE_RUNES.has(rune)) return;
         let ifWritten = false;
@@ -647,8 +647,8 @@ export class ScopeFacts {
   /**
    * svelte's `binding.reassigned`: an assignment, `++`, `--` or `bind:`
    * targets it, or `export { x }` in runes mode's instance names it. Not
-   * `for (x of y)`. A pattern in `for ([x] of y)` counts, which svelte's
-   * doesn't.
+   * `for (x of y)`. A pattern in `for ([x] of y)` counts, which
+   * svelte's doesn't.
    */
   reassigned(binding: Binding): boolean {
     if (this.exported.has(binding)) return true;
@@ -670,8 +670,8 @@ export class ScopeFacts {
   }
 
   /**
-   * The binding an identifier refers to, as svelte's `scope.get`; not a
-   * store's.
+   * The binding an identifier refers to, as svelte's `scope.get`; not
+   * a store's.
    */
   referenced(node: Identifier): Binding | null {
     const reference = this.scopes.referenceOf(node);

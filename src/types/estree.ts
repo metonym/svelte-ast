@@ -466,8 +466,8 @@ export type CallExpression = SimpleCallExpression | NewExpression;
 export interface SimpleCallExpression extends BaseCallExpression {
   type: "CallExpression";
   /**
-   * Absent in a decorator, and on a call with type arguments, as in
-   * acorn-typescript.
+   * Absent in a decorator, and on a call with type arguments, as
+   * in acorn-typescript.
    */
   optional?: boolean;
 }
@@ -482,8 +482,8 @@ export interface MemberExpression extends BaseExpression, BasePattern {
   property: Expression | PrivateIdentifier;
   computed: boolean;
   /**
-   * Absent in a decorator, and on a call with type arguments, as in
-   * acorn-typescript.
+   * Absent in a decorator, and on a call with type arguments, as
+   * in acorn-typescript.
    */
   optional?: boolean;
 }
@@ -754,8 +754,8 @@ export interface ImportDeclaration extends BaseModuleDeclaration {
     ImportSpecifier | ImportDefaultSpecifier | ImportNamespaceSpecifier
   >;
   /**
-   * Absent with `typescript: true` unless there's a `with` clause, as in
-   * acorn-typescript.
+   * Absent with `typescript: true` unless there's a `with` clause, as
+   * in acorn-typescript.
    */
   attributes?: ImportAttribute[] | undefined;
   source: StringLiteral;
@@ -795,8 +795,8 @@ export interface ExportNamedDeclaration extends BaseModuleDeclaration {
   declaration?: Declaration | null | undefined;
   specifiers: ExportSpecifier[];
   /**
-   * Absent with `typescript: true` unless there's a `with` clause, as in
-   * acorn-typescript.
+   * Absent with `typescript: true` unless there's a `with` clause, as
+   * in acorn-typescript.
    */
   attributes?: ImportAttribute[] | undefined;
   source?: StringLiteral | null | undefined;
@@ -825,8 +825,8 @@ export interface ExportAllDeclaration extends BaseModuleDeclaration {
   type: "ExportAllDeclaration";
   exported: Identifier | StringLiteral | null;
   /**
-   * Absent with `typescript: true` unless there's a `with` clause, as in
-   * acorn-typescript.
+   * Absent with `typescript: true` unless there's a `with` clause, as
+   * in acorn-typescript.
    */
   attributes?: ImportAttribute[] | undefined;
   source: StringLiteral;

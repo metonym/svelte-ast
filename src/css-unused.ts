@@ -279,8 +279,8 @@ class UnusedSelectors {
   // Collected as the walk goes, then linked in `finish`.
   private readonly allSnippets = new Set<AST.SnippetBlock>();
   private readonly renderers = new Map<Renderer, boolean>();
-  // How many `<svelte:head>`s the walk is in, since their elements aren't
-  // scoped.
+  // How many `<svelte:head>`s the walk is in, since their elements
+  // aren't scoped.
   private heads = 0;
 
   // The stylesheet's metadata.
@@ -433,8 +433,8 @@ class UnusedSelectors {
   }
 
   /**
-   * Links a render tag to the snippet it renders; whether that's all it can
-   * render.
+   * Links a render tag to the snippet it renders; whether that's all it
+   * can render.
    */
   private linkRenderTag(node: AST.RenderTag): boolean {
     const call = unwrapOptional(node.expression);

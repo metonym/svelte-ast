@@ -9,8 +9,8 @@ const TypeParser = extendParser(tsPlugin);
  * `{"sm" | "lg"}` about to be copied into a `.d.ts`: the type on the right
  * of `type T = ...`, with nothing before or after it but whitespace and
  * comments. Parsed on its own, not wrapped in a statement, so a `;`, a
- * line break or a `}` in `text` can't end the type and start something
- * else.
+ * line break or a `}` in `text` can't end the type and start
+ * something else.
  */
 export function isValidType(
   text: string,
@@ -18,8 +18,8 @@ export function isValidType(
     /**
      * `text` will be embedded before more code on the same line, e.g.
      * `CustomEvent<${text}>`: also require every `//` comment in it to end
-     * with a line break, so it can't comment out what follows. Default
-     * `false`.
+     * with a line break, so it can't comment out what follows.
+     * Default `false`.
      */
     inline?: boolean;
   } = {},

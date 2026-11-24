@@ -401,8 +401,8 @@ export interface TSMethodSignature extends BaseNode {
 }
 
 /**
- * In an interface, a type literal, or a class body (with the class member
- * modifiers).
+ * In an interface, a type literal, or a class body (with the class
+ * member modifiers).
  */
 export interface TSIndexSignature extends BaseNode, TSClassMemberFields {
   type: "TSIndexSignature";
@@ -488,8 +488,8 @@ export interface TSModuleBlock extends BaseNode {
 }
 
 /**
- * A function declaration without a body: an overload or
- * `declare function`.
+ * A function declaration without a body: an overload
+ * or `declare function`.
  */
 export interface TSDeclareFunction extends BaseNode, TSFunctionFields {
   type: "TSDeclareFunction";

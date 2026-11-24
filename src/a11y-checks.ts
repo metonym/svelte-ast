@@ -86,8 +86,8 @@ import type { AST } from "./types/svelte-ast";
 import { forEachChild, markupVisitorKeys } from "./walk";
 
 /**
- * A warning svelte's compiler would give for the component's
- * accessibility.
+ * A warning svelte's compiler would give for the
+ * component's accessibility.
  */
 export interface A11yWarning {
   /** svelte's code, such as `"a11y_missing_attribute"`. */
@@ -362,8 +362,8 @@ function checkElement(
               a11y_no_redundant_roles(currentRole),
             );
           }
-          // A footer's or header's role is redundant unless it's in a section or an
-          // article.
+          // A footer's or header's role is redundant unless it's in a section or
+          // an article.
           if (
             !isParent(path, ["section", "article"]) &&
             currentRole === nestedImplicitSemantics.get(node.name)
@@ -896,8 +896,8 @@ function implicitRole(
 }
 
 /**
- * Role tokens are split on ASCII whitespace and compared ASCII
- * case-insensitively.
+ * Role tokens are split on ASCII whitespace and compared
+ * ASCII case-insensitively.
  */
 function roleTokens(value: string): string[] {
   return value

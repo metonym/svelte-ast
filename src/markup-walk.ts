@@ -77,8 +77,8 @@ export class MarkupWalk {
   // svelte's `parent_element`: the element the markup sits in, until a
   // component, snippet or `<svelte:element>` resets it.
   protected parentElement: string | null = null;
-  // The fragments and nodes above the one being visited, in turn, for
-  // `MarkupHooks.enter`.
+  // The fragments and nodes above the one being visited, in turn,
+  // for `MarkupHooks.enter`.
   private readonly trail: (Node | AST.Fragment)[] = [];
   private readonly hooks: MarkupHooks;
 
@@ -93,8 +93,8 @@ export class MarkupWalk {
   }
 
   /**
-   * Visits a fragment's nodes, as svelte's analyzer with its `svelte-ignore`
-   * comments.
+   * Visits a fragment's nodes, as svelte's analyzer with its
+   * `svelte-ignore` comments.
    */
   protected fragment(
     fragment: AST.Fragment,
@@ -148,8 +148,8 @@ export class MarkupWalk {
   }
 
   /**
-   * Visits `node`'s fragment with `parentElement` as svelte's
-   * `parent_element`.
+   * Visits `node`'s fragment with `parentElement` as
+   * svelte's `parent_element`.
    */
   protected within(
     parentElement: string | null,

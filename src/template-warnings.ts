@@ -1,8 +1,8 @@
 // The markup warnings svelte's compiler gives besides the a11y ones, from
 // svelte 5's phases/2-analyze/visitors: block_empty, the attribute
 // checks in shared/element.js and shared/attribute.js, the checks in
-// RegularElement.js, BindDirective.js and the deprecations. svelte is MIT
-// licensed.
+// RegularElement.js, BindDirective.js and the deprecations. svelte is
+// MIT licensed.
 
 import { invalidWithAncestor, invalidWithParent } from "./html-tree-validation";
 import { type MarkupHooks, MarkupWalk } from "./markup-walk";

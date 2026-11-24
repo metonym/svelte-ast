@@ -48,8 +48,8 @@ export interface Parser {
   /** `parse` from `svelte-ast`, with only what the parser was created with. */
   parse(source: string, options?: ParseOptions): AST.Root;
   /**
-   * `parseModule` from `svelte-ast`, with only what the parser was created
-   * with.
+   * `parseModule` from `svelte-ast`, with only what the parser was
+   * created with.
    */
   parseModule(source: string, options?: ParseModuleOptions): Program;
   /**
@@ -91,8 +91,8 @@ export function createParser(support: ParserSupport = {}): Parser {
 /** The parser {@link createSectionsParser} returns. */
 export interface SectionsParser {
   /**
-   * `parseSections` from `svelte-ast`, with only what the parser was created
-   * with.
+   * `parseSections` from `svelte-ast`, with only what the parser was
+   * created with.
    */
   parseSections(source: string, options?: ParseOptions): AST.Root;
 }

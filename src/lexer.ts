@@ -21,8 +21,8 @@ export type {
 export { lexComponent } from "./component-lexer";
 
 /**
- * A module specifier: the string after `from`, or after `import` in
- * `import "a"`.
+ * A module specifier: the string after `from`, or after `import`
+ * in `import "a"`.
  */
 export interface LexedSource {
   /** The string's value, with escapes decoded. */
@@ -62,8 +62,8 @@ export interface LexedImportSpecifier {
 export interface LexedExportSpecifier {
   /**
    * `"all"` for `export *`, `"namespace"` for `export * as a`, `"named"` for
-   * a name in braces, `"local"` for a name in an `export { … }` without
-   * `from`.
+   * a name in braces, `"local"` for a name in an `export { … }`
+   * without `from`.
    */
   kind: "all" | "namespace" | "named" | "local";
   /**
@@ -125,8 +125,8 @@ export interface LexImportsExportsOptions {
 /** An `import(…)`, a `require(…)` or Vite's `import.meta.glob(…)`. */
 export interface LexedDynamicImport {
   /**
-   * `"import"` for `import(…)`, `"require"` for `require(…)`, `"glob"` for
-   * `import.meta.glob(…)`.
+   * `"import"` for `import(…)`, `"require"` for `require(…)`, `"glob"`
+   * for `import.meta.glob(…)`.
    */
   kind: "import" | "require" | "glob";
   /**
@@ -142,8 +142,8 @@ export interface LexedDynamicImport {
 }
 
 /**
- * A string literal, or the text of a template literal between two of its
- * delimiters.
+ * A string literal, or the text of a template literal between two of
+ * its delimiters.
  */
 export interface LexedString {
   /**
@@ -210,8 +210,8 @@ export function lexImportsExports(
  * throws. Where {@link parseModule} accepts the module, they are its
  * `ImportExpression`s, its calls of an identifier `require` and of
  * `import.meta.glob`, and, in TypeScript, its `import("a")` types and
- * `import a = require("a")`. A method named `import` or `require` isn't a
- * call.
+ * `import a = require("a")`. A method named `import` or `require` isn't
+ * a call.
  */
 export function lexDynamicImports(source: string): LexedDynamicImport[] {
   const lexer = new Lexer(source);

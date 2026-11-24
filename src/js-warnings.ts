@@ -203,8 +203,8 @@ export function jsWarnings(
     ? new ScopeFacts(options.scopes())
     : null;
   // Each other warning needs a bidirectional control character, a class
-  // or, in runes mode, a `svelte-ignore` comment; most components have
-  // none.
+  // or, in runes mode, a `svelte-ignore` comment; most components
+  // have none.
   const others =
     (runes && source.includes("svelte-ignore")) ||
     mayHaveBidi(source) ||
@@ -242,8 +242,8 @@ class Walker {
   // What the scope warnings need, when the component may have one.
   private facts: ScopeFacts | null;
   /**
-   * Whether a `$props()` declaration warns: a custom element without
-   * `customElement.props`.
+   * Whether a `$props()` declaration warns: a custom element
+   * without `customElement.props`.
    */
   customElementProps = false;
   // svelte's `state.function_depth`.
@@ -829,8 +829,8 @@ class Walker {
   }
 
   /**
-   * The kinds and first values of `$props()`'s bindings, and
-   * custom_element_props_identifier.
+   * The kinds and first values of `$props()`'s bindings,
+   * and custom_element_props_identifier.
    */
   private props(
     facts: ScopeFacts,

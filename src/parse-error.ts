@@ -6,8 +6,8 @@ const REGEX_LEADING_TABS = /^\t+/;
 
 /**
  * Thrown for a syntax error. `code`, `message`, `position`, `start`, `end`
- * and `frame` are what svelte/compiler's `CompileError` has for the same
- * input.
+ * and `frame` are what svelte/compiler's `CompileError` has for the
+ * same input.
  */
 export class ParseError extends Error {
   override name = "ParseError";

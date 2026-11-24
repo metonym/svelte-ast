@@ -216,8 +216,8 @@ export interface Scopes {
    * The scope `node` is in: for a function, the scope around it, while
    * its parameters are in its own. `null` for a node in a type, in the
    * `<style>` or outside the AST. The first call walks the AST again to
-   * record every node's scope, which the rest of the analysis doesn't
-   * need.
+   * record every node's scope, which the rest of the analysis
+   * doesn't need.
    */
   scopeOf(node: AST.SvelteNode): Scope | null;
   /**
@@ -1000,8 +1000,8 @@ class Analysis implements Scopes {
 
   /**
    * Visits what only `{ types: true }` visits differently: the nodes that
-   * name, declare or make scopes for types. Returns whether it visited
-   * `node`.
+   * name, declare or make scopes for types. Returns whether it
+   * visited `node`.
    */
   private visitTyped(node: AST.SvelteNode, scope: ScopeNode): boolean {
     switch (node.type) {
