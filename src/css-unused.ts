@@ -7,6 +7,7 @@ import type { MarkupHooks } from "./markup-walk";
 // metadata svelte writes onto the AST lives in maps here, so the AST is
 // never changed. svelte is MIT licensed.
 import type { Binding, Scopes } from "./scope";
+import { skipTypeWrappers } from "./skip-type-wrappers";
 import { ignoreCodes } from "./svelte-ignore";
 import type { Expression, Identifier } from "./types/estree";
 import type { AST } from "./types/svelte-ast";
@@ -212,34 +213,16 @@ function getAttributeExpression(
 ): Expression | undefined {
   const { value } = attribute;
   if (value === true) return;
-  if (!Array.isArray(value)) return stripTs(value.expression);
+  if (!Array.isArray(value)) return skipTypeWrappers(value.expression);
   if (value.length === 1 && value[0]?.type === "ExpressionTag")
-    return stripTs(value[0].expression);
-}
-
-const TS_WRAPPERS: ReadonlySet<string> = new Set([
-  "TSAsExpression",
-  "TSSatisfiesExpression",
-  "TSNonNullExpression",
-  "TSTypeAssertion",
-  "TSInstantiationExpression",
-]);
-
-/**
- * The expression without the TypeScript wrappers svelte strips before it
- * analyzes.
- */
-function stripTs(expression: Expression): Expression {
-  let node = expression;
-  while (TS_WRAPPERS.has(node.type)) {
-    node = (node as unknown as { expression: Expression }).expression;
-  }
-  return node;
+    return skipTypeWrappers(value[0].expression);
 }
 
 function unwrapOptional(expression: Expression): Expression {
-  const node = stripTs(expression);
-  return node.type === "ChainExpression" ? stripTs(node.expression) : node;
+  const node = skipTypeWrappers(expression);
+  return node.type === "ChainExpression"
+    ? skipTypeWrappers(node.expression)
+    : node;
 }
 
 /** svelte's `is_resolved_snippet`, on svelte-ast's bindings. */
@@ -454,9 +437,9 @@ class UnusedSelectors {
    * render.
    */
   private linkRenderTag(node: AST.RenderTag): boolean {
-    const callee = stripTs(
-      (unwrapOptional(node.expression) as { callee: Expression }).callee,
-    );
+    const call = unwrapOptional(node.expression);
+    if (call.type !== "CallExpression") return false;
+    const callee = skipTypeWrappers(call.callee);
     const binding =
       callee.type === "Identifier" ? this.bindingOf(callee) : null;
     if (binding?.initial?.type === "SnippetBlock") {
@@ -624,7 +607,9 @@ class UnusedSelectors {
   private pruneComplex(node: ComplexSelector): void {
     const meta = this.complex(node);
     const selectors = this.relativeSelectors(node);
-    const rule = meta.rule as Rule;
+    const { rule } = meta;
+    // invariant: a complex selector is analyzed inside its rule.
+    if (rule === null) return;
     // Global rules don't depend on an element in this component
     if (this.everyIsGlobal(selectors, 0, selectors.length, rule)) {
       meta.used = true;
@@ -696,7 +681,7 @@ class UnusedSelectors {
   private applySelector(
     relatives: readonly RelativeSelector[],
     rule: Rule,
-    element: Node,
+    element: Element,
     direction: Direction,
     from = 0,
     to = relatives.length,
@@ -708,7 +693,7 @@ class UnusedSelectors {
     const restFrom = direction === FORWARD ? from + 1 : from;
     const restTo = direction === FORWARD ? to : to - 1;
     return (
-      this.mightApply(relative, rule, element as Element, direction) &&
+      this.mightApply(relative, rule, element, direction) &&
       this.applyCombinator(
         relative,
         relatives,
@@ -727,7 +712,7 @@ class UnusedSelectors {
     from: number,
     to: number,
     rule: Rule,
-    node: Node,
+    node: Element,
     direction: Direction,
   ): boolean {
     let combinator: AST.CSS.Combinator | null | undefined = relative.combinator;
@@ -764,18 +749,20 @@ class UnusedSelectors {
         );
         let matched = false;
         for (const sibling of siblings.keys()) {
+          // The others are render tags, slots and components.
           if (
-            sibling.type === "RenderTag" ||
-            sibling.type === "SlotElement" ||
-            sibling.type === "Component"
+            sibling.type === "RegularElement" ||
+            sibling.type === "SvelteElement"
           ) {
+            if (
+              this.applySelector(relatives, rule, sibling, direction, from, to)
+            ) {
+              matched = true;
+            }
+          } else {
             // `{@render foo()}<p>foo</p>` with `:global(.x) + p` is a match
             const only = to - from === 1 ? relatives[from] : undefined;
             if (only && this.relative(only).isGlobal) matched = true;
-          } else if (
-            this.applySelector(relatives, rule, sibling, direction, from, to)
-          ) {
-            matched = true;
           }
         }
         return (
@@ -820,8 +807,11 @@ class UnusedSelectors {
         }
       }
       if (s.type === "NestingSelector") {
-        owner = this.rule(rule).parentRule as Rule;
-        list = owner.prelude;
+        const parent = this.rule(rule).parentRule;
+        if (parent !== null) {
+          owner = parent;
+          list = parent.prelude;
+        }
       }
       const hasGlobal = Boolean(
         list?.children.some((complex) =>
@@ -1009,7 +999,9 @@ class UnusedSelectors {
           break;
         case "NestingSelector": {
           let matched = false;
-          const parent = this.rule(rule).parentRule as Rule;
+          const parent = this.rule(rule).parentRule;
+          // `&` in a rule that isn't nested matches nothing.
+          if (parent === null) return false;
           for (const complex of parent.prelude.children) {
             if (
               this.applySelector(
@@ -1037,8 +1029,8 @@ class UnusedSelectors {
     node: Node,
     adjacentOnly: boolean,
     seen = new Set<AST.SnippetBlock>(),
-  ): Node[] {
-    const ancestors: Node[] = [];
+  ): Element[] {
+    const ancestors: Element[] = [];
     const path = this.pathOf(node);
     let i = path.length;
     while (i--) {
@@ -1082,11 +1074,11 @@ class UnusedSelectors {
   }
 
   private descendantElements(
-    node: Node,
+    node: Element,
     adjacentOnly: boolean,
     seen = new Set<AST.SnippetBlock>(),
-  ): Node[] {
-    const descendants: Node[] = [];
+  ): Element[] {
+    const descendants: Element[] = [];
     const visit = (child: Node): void => {
       if (child.type === "RegularElement" || child.type === "SvelteElement") {
         descendants.push(child);
@@ -1104,7 +1096,7 @@ class UnusedSelectors {
     const visitChildren = (child: Node): void =>
       forEachChild(child, visit, markupVisitorKeys);
 
-    visit(node.type === "RenderTag" ? node : (node as Element).fragment);
+    visit(node.fragment);
 
     // <selectedcontent> clones the selected <option>'s content, so what's
     // in the <option>s of its <select> are its descendants too.
@@ -1152,12 +1144,17 @@ class UnusedSelectors {
     let current: Node | undefined = node;
     let i = path.length;
     while (i--) {
-      const fragment = path[i--] as unknown as AST.Fragment;
+      // invariant: a path alternates nodes and their fragments.
+      const fragment = path[i--];
+      if (fragment?.type !== "Fragment") break;
       let j =
-        (fragment.nodes as Node[]).indexOf(current) +
+        fragment.nodes.findIndex((child) => child === current) +
         (direction === FORWARD ? 1 : -1);
-      while (j >= 0 && j < fragment.nodes.length) {
-        const sibling = fragment.nodes[j] as Node;
+      for (
+        let sibling = fragment.nodes[j];
+        sibling !== undefined;
+        sibling = fragment.nodes[j]
+      ) {
         if (sibling.type === "RegularElement") {
           const hasSlot = sibling.attributes.some(
             (attribute) =>
@@ -1365,8 +1362,7 @@ class UnusedSelectors {
           !this.complex(node).used &&
           // `.unused:is(.unused)` warns once
           (path.at(-2)?.type !== "PseudoClassSelector" ||
-            (outer !== undefined &&
-              this.complex(outer as ComplexSelector).used))
+            (outer?.type === "ComplexSelector" && this.complex(outer).used))
         ) {
           const { content } = this.stylesheet;
           const text = content.styles.slice(
@@ -1414,8 +1410,8 @@ function marksOthers(node: CssNode): boolean {
   return false;
 }
 
-function findSelectedcontent(select: Node): Node | null {
-  let found: Node | null = null;
+function findSelectedcontent(select: Node): AST.RegularElement | null {
+  let found: AST.RegularElement | null = null;
   const visit = (node: Node): void => {
     if (found) return;
     if (node.type === "RegularElement" && node.name === "selectedcontent") {
@@ -1609,7 +1605,7 @@ function gatherPossibleValues(
   set: Set<unknown>,
   isNested = false,
 ): void {
-  const node = stripTs(expression);
+  const node = skipTypeWrappers(expression);
   // no point going any further
   if (set.has(UNKNOWN)) return;
   switch (node.type) {
@@ -1655,8 +1651,8 @@ function gatherPossibleValues(
     case "ArrayExpression":
       if (isClass) {
         for (const entry of node.elements) {
-          if (entry)
-            gatherPossibleValues(entry as Expression, isClass, set, true);
+          if (entry?.type === "SpreadElement") set.add(UNKNOWN);
+          else if (entry) gatherPossibleValues(entry, isClass, set, true);
         }
         return;
       }
