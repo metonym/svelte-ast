@@ -7,11 +7,21 @@
 import { extractIdentifiers } from "./extract-identifiers";
 import { RUNE_NAMES, RUNES } from "./rune-names";
 import type { Binding, Reference, Scope, Scopes } from "./scope";
-import type { CallExpression, Expression, Identifier } from "./types/estree";
+import { skipTypeWrappers } from "./skip-type-wrappers";
+import type {
+  Expression,
+  Identifier,
+  MaybeNamedClassDeclaration,
+  MaybeNamedFunctionDeclaration,
+} from "./types/estree";
 import type { AST } from "./types/svelte-ast";
 import { valueVisitorKeys, walk } from "./walk";
 
 type Node = AST.SvelteNode;
+// An `export default`'s function or class may be unnamed, so it isn't a
+// SvelteNode.
+type TopLevel =
+  Node | MaybeNamedFunctionDeclaration | MaybeNamedClassDeclaration;
 interface Span {
   start: number;
   end: number;
@@ -137,7 +147,7 @@ class Gate {
   private readonly source: string;
   private markupText: string | undefined;
   // The top-level declarations of the scripts, by name.
-  private topLevel: Map<string, Node> | undefined;
+  private topLevel: Map<string, TopLevel> | undefined;
 
   constructor(ast: AST.Root, source: string) {
     this.ast = ast;
@@ -165,18 +175,17 @@ class Gate {
   }
 
   /** The scripts' top-level declarations: the declarator, or the statement. */
-  private declarations(): Map<string, Node> {
+  private declarations(): Map<string, TopLevel> {
     if (this.topLevel === undefined) {
-      const declarations = new Map<string, Node>();
+      const declarations = new Map<string, TopLevel>();
       for (const script of [this.ast.module, this.ast.instance]) {
-        for (let statement of script?.content.body ?? []) {
-          if (
-            (statement.type === "ExportNamedDeclaration" ||
-              statement.type === "ExportDefaultDeclaration") &&
-            statement.declaration
-          ) {
-            statement = statement.declaration as unknown as typeof statement;
-          }
+        for (const top of script?.content.body ?? []) {
+          const statement =
+            (top.type === "ExportNamedDeclaration" ||
+              top.type === "ExportDefaultDeclaration") &&
+            top.declaration
+              ? top.declaration
+              : top;
           if (statement.type === "VariableDeclaration") {
             for (const declarator of statement.declarations) {
               for (const id of extractIdentifiers(declarator.id)) {
@@ -339,12 +348,12 @@ function scanScript(program: Node, scan: Scan): void {
             }
             return;
           case "UpdateExpression": {
-            const argument = unwrap(node.argument as Node);
+            const argument = unwrap(node.argument);
             if (argument.type === "Identifier") scan.writes.add(argument.name);
             return;
           }
           case "ExportSpecifier": {
-            const local = node.local as Node;
+            const { local } = node;
             if (local.type === "Identifier") scan.writes.add(local.name);
             return;
           }
@@ -401,12 +410,14 @@ function scanScript(program: Node, scan: Scan): void {
         if (rune === null || !STATE_RUNES.has(rune)) return;
         let ifWritten = false;
         if (rune === "$state") {
-          const { arguments: args } = unwrap(node.init) as CallExpression;
+          const init = unwrap(node.init);
+          const [first, ...rest] =
+            init?.type === "CallExpression" ? init.arguments : [];
           ifWritten =
-            args.length !== 1 ||
-            args[0]?.type === "SpreadElement" ||
-            (mayProxy(args[0] as Node) &&
-              unwrap(args[0] as Node).type !== "Identifier");
+            first === undefined ||
+            rest.length > 0 ||
+            first.type === "SpreadElement" ||
+            (mayProxy(first) && unwrap(first).type !== "Identifier");
         }
         const frame = frames.at(-1);
         for (const id of extractIdentifiers(node.id)) {
@@ -559,11 +570,10 @@ export function needsScriptWalk(
     if (binding === null) continue;
     const kind = facts.staticKind(binding);
     if (kind !== "$derived" && kind !== "$props") continue;
-    const declaration = binding.declaration as AST.SvelteNode & {
-      id: Span;
-      init: Span;
-    };
-    deeper.push(kind === "$props" ? declaration.id : declaration.init);
+    const declaration = binding.declaration;
+    if (declaration.type !== "VariableDeclarator") continue;
+    const span = kind === "$props" ? declaration.id : declaration.init;
+    if (span) deeper.push(span);
   }
   return candidates.some(
     (reference) => !deeper.some((span) => contains(span, reference.node)),
@@ -583,22 +593,15 @@ export function needsMarkupWalk(source: string, runes: boolean): boolean {
   );
 }
 
-// What svelte's remove_typescript_nodes.js replaces with its expression.
-const TYPE_WRAPPERS = new Set([
-  "TSAsExpression",
-  "TSSatisfiesExpression",
-  "TSNonNullExpression",
-  "TSTypeAssertion",
-  "TSInstantiationExpression",
-]);
-
-/** `node` without TypeScript's wrappers, as svelte's analyzer sees it. */
-function unwrap<T extends Node | null | undefined>(node: T): T {
-  let inner = node;
-  while (inner != null && TYPE_WRAPPERS.has(inner.type)) {
-    inner = (inner as unknown as { expression: T }).expression;
-  }
-  return inner;
+/**
+ * `node` without TypeScript's wrappers, as svelte's analyzer sees it:
+ * svelte's remove_typescript_nodes.js replaces them with their expression.
+ */
+function unwrap(node: Expression): Expression;
+function unwrap(node: Node): Node;
+function unwrap(node: Node | null | undefined): Node | null;
+function unwrap(node: Node | null | undefined): Node | null {
+  return node == null ? null : skipTypeWrappers(node);
 }
 
 // Kept out of `Scopes` because they aren't API, though
@@ -676,11 +679,13 @@ export class ScopeFacts {
     const { binding } = reference;
     // svelte drops type-only imports, so their names are globals.
     if (binding?.kind === "import") {
-      const specifier = binding.declaration as { importKind?: string };
-      const declaration = binding.initial as { importKind?: string } | null;
+      const specifier = binding.declaration;
+      const declaration = binding.initial;
       if (
-        specifier.importKind === "type" ||
-        declaration?.importKind === "type"
+        (specifier.type === "ImportSpecifier" &&
+          specifier.importKind === "type") ||
+        (declaration?.type === "ImportDeclaration" &&
+          declaration.importKind === "type")
       ) {
         return null;
       }
@@ -691,10 +696,11 @@ export class ScopeFacts {
   /**
    * The identifier svelte gives a binding's warnings at. svelte gives a
    * `var` declared again a new binding, so its warnings point at the
-   * last declaration.
+   * last declaration. `node` is the binding's own, which the caller has
+   * checked is there.
    */
-  nodeOf(binding: Binding): Identifier | null {
-    if (binding.kind !== "var") return binding.node;
+  nodeOf(binding: Binding, node: Identifier): Identifier {
+    if (binding.kind !== "var") return node;
     if (this.lastDeclared === null) {
       this.lastDeclared = new Map();
       for (const [node, declared] of this.scopes.allDeclared()) {
@@ -705,7 +711,7 @@ export class ScopeFacts {
         }
       }
     }
-    return this.lastDeclared.get(binding) ?? binding.node;
+    return this.lastDeclared.get(binding) ?? node;
   }
 
   /**
@@ -718,9 +724,10 @@ export class ScopeFacts {
     if (this.reassigned(binding) || exported.includes(binding)) return true;
     const initial = unwrap(binding.initial);
     if (initial?.type !== "CallExpression") return true;
-    const { arguments: args } = initial as CallExpression;
-    if (args.length !== 1 || args[0]?.type === "SpreadElement") return false;
-    const argument = unwrap(args[0] as Node);
+    const [first, ...rest] = initial.arguments;
+    if (first === undefined || rest.length > 0) return false;
+    if (first.type === "SpreadElement") return false;
+    const argument = unwrap(first);
     return argument.type === "Identifier" || !this.shouldProxy(argument, false);
   }
 
@@ -834,11 +841,12 @@ export class ScopeFacts {
     if (this.reassigned(binding)) return true;
     const initial = unwrap(binding.initial);
     if (initial?.type !== "CallExpression") return false;
-    const { arguments: args } = initial as CallExpression;
+    const [first, ...rest] = initial.arguments;
     return (
-      args.length === 1 &&
-      args[0]?.type !== "SpreadElement" &&
-      !this.shouldProxy(args[0] as Expression, true)
+      first !== undefined &&
+      rest.length === 0 &&
+      first.type !== "SpreadElement" &&
+      !this.shouldProxy(first, true)
     );
   }
 
@@ -875,13 +883,6 @@ function contains(outer: Span, inner: Span): boolean {
   return outer.start <= inner.start && inner.end <= outer.end;
 }
 
-const MARKUP_BLOCKS = new Set([
-  "IfBlock",
-  "EachBlock",
-  "AwaitBlock",
-  "KeyBlock",
-]);
-
 /** The markup's functions, `bind:this` directives and blocks. */
 function markupSpans(fragment: AST.Fragment): {
   functions: Span[];
@@ -903,8 +904,13 @@ function markupSpans(fragment: AST.Fragment): {
           functions.push(node);
         } else if (node.type === "BindDirective" && node.name === "this") {
           bindThis.push(node);
-        } else if (MARKUP_BLOCKS.has(node.type)) {
-          blocks.push(node as Span);
+        } else if (
+          node.type === "IfBlock" ||
+          node.type === "EachBlock" ||
+          node.type === "AwaitBlock" ||
+          node.type === "KeyBlock"
+        ) {
+          blocks.push(node);
         }
       },
     },
@@ -961,7 +967,7 @@ export function nonReactiveUpdates(
         }
         facts.warn(
           warn,
-          facts.nodeOf(binding) as Identifier,
+          facts.nodeOf(binding, binding.node),
           "non_reactive_update",
           `\`${name}\` is updated, but is not declared with \`$state(...)\`. Changing its value will not correctly trigger updates`,
         );
@@ -1021,7 +1027,7 @@ export function unusedExports(
     ) {
       facts.warn(
         warn,
-        facts.nodeOf(binding) as Identifier,
+        facts.nodeOf(binding, binding.node),
         "export_let_unused",
         `Component has unused export property '${name}'. If it is for external reference only, please consider using \`export const ${name}\``,
       );
